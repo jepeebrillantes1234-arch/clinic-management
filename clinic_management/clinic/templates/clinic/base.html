@@ -57,6 +57,11 @@
             --logout-hover-bg: rgba(248, 113, 113, 0.15);
         }
 
+        *, *::before, *::after {
+            transition: none !important;
+            animation: none !important;
+        }
+
         body {
             height: 100%;
             margin: 0;
@@ -83,7 +88,6 @@
             overflow-x: hidden;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
-            /* Tinanggal ang transition para walang lag */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -540,7 +544,7 @@
     <div class="toast-container-custom">
         {% if messages %}
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-lg rounded-3 auto-dismiss-alert border-0 fw-medium text-dark"
+        <div class="alert alert-{{ message.tags }} alert-dismissible shadow-lg rounded-3 auto-dismiss-alert border-0 fw-medium text-dark"
             role="alert">
             <div class="d-flex align-items-center">
                 <i class="bi bi-info-circle-fill fs-5 me-2"></i>
@@ -626,7 +630,6 @@
             const navLinks = sidebar ? sidebar.querySelectorAll('.nav-item-link') : [];
             navLinks.forEach(link => {
                 link.addEventListener("click", function (e) {
-                    // Gawin lang ito kung nasa mobile view (under 992px)
                     if (window.innerWidth <= 991.98) {
                         sidebar.classList.remove("show");
                         sidebar.style.transform = "translateX(-100%)";
@@ -634,8 +637,6 @@
                             overlay.classList.remove("show");
                         }
                     }
-                    // Kung nasa desktop view, hayaan lang mag-navigate nang normal 
-                    // nang hindi ginalagalaw ang collapsed state.
                 });
             });
         });
