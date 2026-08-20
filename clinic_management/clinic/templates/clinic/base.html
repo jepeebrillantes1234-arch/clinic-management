@@ -1,1224 +1,610 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="en">
 
-
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{% block title %}Clinic Management System{% endblock %}</title>
 
-
-
     <script>
-
         (function () {
-
             const savedTheme = localStorage.getItem('theme') || 'light';
-
             document.documentElement.setAttribute('data-bs-theme', savedTheme);
-
         })();
-
     </script>
 
-
-
     <!-- Bootstrap CSS & Icons -->
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@700;800&display=swap" rel="stylesheet">
 
-
-
     <style>
-
     :root {
-
         --glow-blue: #38bdf8;
-
         --glow-purple: #a855f7;
-
         --sidebar-width: 260px;
-
         --sidebar-collapsed-width: 80px;
-
     }
-
-
 
     [data-bs-theme="light"] {
-
         --shell-bg: #f4f7fb;
-
         --sidebar-bg: rgba(255, 255, 255, 0.98);
-
         --sidebar-border: rgba(15, 53, 105, 0.1);
-
         --nav-text: #475569;
-
         --nav-hover-bg: rgba(15, 53, 105, 0.06);
-
         --nav-hover-color: #0F3569;
-
         --main-overlay: rgba(244, 247, 251, 0.94);
-
         --text-primary: #0f172a;
-
         --toggle-btn-bg: #f1f5f9;
-
         --toggle-btn-color: #475569;
-
         --logout-hover-bg: rgba(239, 68, 68, 0.1);
-
     }
-
-
 
     [data-bs-theme="dark"] {
-
         --shell-bg: #0b1329;
-
         --sidebar-bg: rgba(15, 23, 42, 0.98);
-
         --sidebar-border: rgba(255, 255, 255, 0.1);
-
         --nav-text: #94a3b8;
-
         --nav-hover-bg: rgba(56, 189, 248, 0.08);
-
         --nav-hover-color: #f8fafc;
-
         --main-overlay: rgba(11, 19, 41, 0.92);
-
         --text-primary: #f8fafc;
-
         --toggle-btn-bg: rgba(255, 255, 255, 0.08);
-
         --toggle-btn-color: #cbd5e1;
-
         --logout-hover-bg: rgba(248, 113, 113, 0.15);
-
     }
-
-
 
     body {
-
         height: 100%;
-
         margin: 0;
-
         padding: 0;
-
         font-family: 'Plus Jakarta Sans', sans-serif;
-
         background: var(--shell-bg);
-
         color: var(--text-primary);
-
         overflow-x: hidden;
-
     }
-
-
 
     /* ===== SIDEBAR ===== */
-
     #appSidebar {
-
         width: var(--sidebar-width);
-
         min-width: var(--sidebar-width);
-
         position: fixed;
-
         top: 0;
-
         left: 0;
-
         height: 100vh;
-
         display: flex;
-
         flex-direction: column;
-
         justify-content: space-between;
-
         z-index: 1050;
-
         overflow-y: auto;
-
         overflow-x: hidden;
-
         background: var(--sidebar-bg);
-
         border-right: 1px solid var(--sidebar-border);
-
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
+        /* Tinanggal ang transition para walang lag */
         -webkit-overflow-scrolling: touch;
-
     }
-
-
 
     .sidebar-header-glass {
-
         padding: 1.2rem;
-
         display: flex;
-
         align-items: center;
-
         justify-content: space-between;
-
         gap: 0.75rem;
-
         border-bottom: 1px solid var(--sidebar-border);
-
         white-space: nowrap;
-
     }
-
-
 
     .brand-text {
-
         font-weight: 800;
-
         font-size: 1rem;
-
         text-transform: uppercase;
-
         letter-spacing: 0.02em;
-
         color: var(--text-primary);
-
     }
-
-
 
     .sidebar-toggle-btn {
-
         background: var(--toggle-btn-bg);
-
         border: 1px solid var(--sidebar-border);
-
         color: var(--toggle-btn-color);
-
         width: 42px;
-
         height: 42px;
-
         border-radius: 10px;
-
         display: flex;
-
         align-items: center;
-
         justify-content: center;
-
         cursor: pointer;
-
         flex-shrink: 0;
-
         touch-action: manipulation;
-
     }
-
-
 
     .sidebar-toggle-btn:hover {
-
         background: var(--glow-blue);
-
         color: #ffffff;
-
     }
-
-
 
     .nav-item-link {
-
         display: flex;
-
         align-items: center;
-
         gap: 0.75rem;
-
         padding: 0.85rem 1rem;
-
         border-radius: 0.75rem;
-
         margin-bottom: 0.4rem;
-
         font-size: 0.92rem;
-
         font-weight: 600;
-
         text-decoration: none;
-
         color: var(--nav-text);
-
         white-space: nowrap;
-
         touch-action: manipulation;
-
     }
-
-
 
     .nav-item-link:hover {
-
         background-color: var(--nav-hover-bg);
-
         color: var(--nav-hover-color);
-
     }
-
-
 
     .nav-item-link.active {
-
         background: linear-gradient(135deg, #0F3569 0%, #1e40af 60%, #38bdf8 130%);
-
         color: #ffffff !important;
-
     }
-
-
 
     .nav-item-link i {
-
         font-size: 1.15rem;
-
         width: 24px;
-
         text-align: center;
-
         flex-shrink: 0;
-
     }
-
-
 
     .sidebar-footer-glass {
-
         padding: 1rem 0.75rem;
-
         border-top: 1px solid var(--sidebar-border);
-
         white-space: nowrap;
-
     }
-
-
 
     .user-profile-card {
-
         display: flex;
-
         align-items: center;
-
         justify-content: space-between;
-
         padding-top: 0.75rem;
-
         border-top: 1px solid var(--sidebar-border);
-
         gap: 0.5rem;
-
     }
-
-
 
     .user-avatar-glow {
-
         width: 38px;
-
         height: 38px;
-
         border-radius: 50%;
-
         background: linear-gradient(135deg, #38bdf8 0%, #0F3569 100%);
-
         color: #ffffff;
-
         font-weight: 800;
-
         display: flex;
-
         align-items: center;
-
         justify-content: center;
-
         flex-shrink: 0;
-
         font-size: 0.95rem;
-
     }
-
-
 
     .btn-logout {
-
         background: transparent;
-
         border: none;
-
         color: #f87171;
-
         width: 40px;
-
         height: 40px;
-
         border-radius: 8px;
-
         display: flex;
-
         align-items: center;
-
         justify-content: center;
-
         cursor: pointer;
-
         flex-shrink: 0;
-
         padding: 0;
-
         touch-action: manipulation;
-
     }
-
-
 
     .btn-logout:hover {
-
         background: var(--logout-hover-bg);
-
         color: #ef4444;
-
     }
-
-
 
     /* ===== COLLAPSED DESKTOP SIDEBAR ===== */
-
     body.sidebar-collapsed #appSidebar {
-
         width: var(--sidebar-collapsed-width);
-
         min-width: var(--sidebar-collapsed-width);
-
     }
-
-
 
     body.sidebar-collapsed .brand-text,
-
     body.sidebar-collapsed .nav-item-link span,
-
     body.sidebar-collapsed .user-info-text,
-
     body.sidebar-collapsed .nav-badge {
-
         display: none !important;
-
     }
-
-   
-
+    
     body.sidebar-collapsed .sidebar-header-glass {
-
         justify-content: center;
-
         padding: 1.2rem 0.5rem;
-
     }
-
-
 
     body.sidebar-collapsed .brand-logo-container {
-
         display: flex !important;
-
         justify-content: center;
-
         width: 100%;
-
         cursor: pointer;
-
     }
-
-
 
     body.sidebar-collapsed .sidebar-header-glass #toggleSidebarDesktopBtn {
-
         display: none !important;
-
     }
-
-
 
     body.sidebar-collapsed .nav-item-link {
-
         justify-content: center;
-
         padding: 0.75rem 0;
-
         margin-bottom: 0.5rem;
-
     }
-
-
 
     body.sidebar-collapsed .user-profile-card {
-
         flex-direction: column;
-
         align-items: center;
-
         justify-content: center;
-
         padding-top: 0.75rem;
-
         gap: 0.75rem;
-
     }
-
-
 
     body.sidebar-collapsed .main-container {
-
         margin-left: var(--sidebar-collapsed-width);
-
         width: calc(100% - var(--sidebar-collapsed-width));
-
     }
-
-
 
     /* ===== MAIN CONTAINER ===== */
-
     .main-container {
-
         margin-left: var(--sidebar-width);
-
         flex-grow: 1;
-
         display: flex;
-
         flex-direction: column;
-
         min-height: 100vh;
-
         width: calc(100% - var(--sidebar-width));
-
         position: relative;
-
         z-index: 1;
-
-        transition: margin-left 0.25s ease, width 0.25s ease;
-
     }
-
-
 
     .mobile-topbar {
-
         display: none;
-
         background: var(--sidebar-bg);
-
         border-bottom: 1px solid var(--sidebar-border);
-
         padding: 0.75rem 1rem;
-
         position: sticky;
-
         top: 0;
-
         z-index: 1020;
-
         align-items: center;
-
         justify-content: space-between;
-
     }
-
-
 
     .content-main {
-
         flex-grow: 1;
-
         padding: 1.5rem;
-
         position: relative;
-
         min-height: 100vh;
-
     }
-
-
 
     .content-overlay {
-
         position: absolute;
-
         inset: 0;
-
         background-color: var(--main-overlay);
-
         z-index: 1;
-
         pointer-events: none;
-
     }
-
-
 
     .content-inner {
-
         position: relative;
-
         z-index: 2;
-
     }
-
-
 
     /* ===== SIDEBAR OVERLAY ===== */
-
     #sidebarOverlay {
-
         position: fixed;
-
         inset: 0;
-
         background-color: rgba(0, 0, 0, 0.5);
-
         z-index: 1040;
-
         opacity: 0;
-
         visibility: hidden;
-
         pointer-events: none;
-
-        transition: opacity 0.25s ease, visibility 0.25s ease;
-
     }
-
-
 
     #sidebarOverlay.show {
-
         opacity: 1;
-
         visibility: visible;
-
         pointer-events: auto;
-
     }
-
-
 
     /* Responsive Breakpoints para sa Mobile and Tablets */
-
     @media (max-width: 991.98px) {
-
         #appSidebar {
-
             position: fixed !important;
-
             top: 0 !important;
-
             left: 0 !important;
-
             height: 100vh !important;
-
             width: var(--sidebar-width) !important;
-
             z-index: 1060 !important;
-
             transform: translateX(-100%);
-
-            transition: transform 0.3s ease-in-out !important;
-
         }
-
-
 
         #appSidebar.show {
-
             transform: translateX(0) !important;
-
             visibility: visible !important;
-
             display: flex !important;
-
         }
-
-
 
         #appSidebar .brand-text,
-
         #appSidebar .nav-item-link span,
-
         #appSidebar .user-info-text,
-
         #appSidebar .nav-badge {
-
             display: inline-block !important;
-
         }
-
-
 
         #appSidebar .nav-item-link {
-
             justify-content: flex-start !important;
-
             padding: 0.85rem 1rem !important;
-
         }
-
-
 
         #appSidebar .sidebar-header-glass {
-
             justify-content: space-between !important;
-
             padding: 1.2rem !important;
-
         }
-
-
 
         .main-container {
-
             margin-left: 0 !important;
-
             width: 100% !important;
-
         }
-
-
 
         .mobile-topbar {
-
             display: flex !important;
-
         }
-
-
 
         .desktop-toggle-btn {
-
             display: none !important;
-
         }
-
     }
-
-
 
     #openSidebarBtn {
-
         width: 44px !important;
-
         height: 44px !important;
-
         padding: 0 !important;
-
         display: flex;
-
         align-items: center;
-
         justify-content: center;
-
         touch-action: manipulation;
-
         border-radius: 10px;
-
     }
-
-
 
     [data-bs-theme="dark"] .alert-success { background-color: #198754 !important; color: #ffffff !important; }
-
     [data-bs-theme="dark"] .alert-danger { background-color: #dc3545 !important; color: #ffffff !important; }
-
     [data-bs-theme="dark"] .alert-warning { background-color: #ffc107 !important; color: #000000 !important; }
-
     [data-bs-theme="dark"] .alert-info { background-color: #0dcaf0 !important; color: #000000 !important; }
 
-
-
     .toast-container-custom {
-
         position: fixed;
-
         top: 20px;
-
         right: 20px;
-
         z-index: 9999;
-
         max-width: 400px;
-
         width: 100%;
-
     }
-
 </style>
-
     {% block extra_css %}{% endblock %}
-
 </head>
-
-
 
 <body class="bg-body text-body">
 
-
-
     <!-- Mobile Overlay -->
-
     <div id="sidebarOverlay"></div>
 
-
-
     <div style="display: flex; min-height: 100vh; width: 100%; position: relative;">
-
         <!-- GLOBAL SIDEBAR -->
-
         <aside id="appSidebar">
-
             <div>
-
                 <div class="sidebar-header-glass">
-
                     <div class="brand-logo-container" id="logoToggleBtn" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" title="Toggle Sidebar">
-
                         <img src="{% static 'clinic/img/me.png' %}" alt="ICE Clinic Logo" style="width: 40px; height: 40px; object-fit: contain;">
-
                         <span class="brand-text">Clinic System</span>
-
                     </div>
-
-
 
                     <!-- Desktop Toggle Collapse Button -->
-
                     <button class="sidebar-toggle-btn desktop-toggle-btn d-none d-lg-flex" id="toggleSidebarDesktopBtn" title="Toggle Sidebar">
-
                         <i class="bi bi-chevron-left"></i>
-
                     </button>
-
                 </div>
-
                
-
                 <nav style="padding: 1rem 0.75rem;">
-
                     <a href="{% url 'dashboard' %}" class="nav-item-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" title="Dashboard">
-
                         <i class="bi bi-grid-fill"></i>
-
                         <span>Dashboard</span>
-
                     </a>
-
                     <a href="{% url 'nurse_list' %}" class="nav-item-link {% if request.resolver_match.url_name == 'nurse_list' or request.resolver_match.url_name == 'nurse_detail' %}active{% endif %}" title="Nurses">
-
                         <i class="bi bi-person-badge-fill"></i>
-
                         <span>Nurses</span>
-
                     </a>
-
                     <a href="{% url 'student_records' %}" class="nav-item-link {% if request.resolver_match.url_name == 'student_records' %}active{% endif %}" title="Students">
-
                         <i class="bi bi-people-fill"></i>
-
                         <span>Students</span>
-
                     </a>
-
                     <a href="{% url 'medicine_list' %}" class="nav-item-link {% if request.resolver_match.url_name == 'medicine_list' %}active{% endif %}" title="Medicines">
-
                         <i class="bi bi-capsule"></i>
-
                         <span>Medicines</span>
-
                     </a>
-
                     <a href="{% url 'reports' %}" class="nav-item-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}" title="Reports">
-
                         <i class="bi bi-file-earmark-bar-graph-fill"></i>
-
                         <span>Reports</span>
-
                     </a>
-
                 </nav>
-
             </div>
-
-
 
             <div class="sidebar-footer-glass">
-
                 {% if nav_low_stock_count %}
-
                 <a href="{% url 'medicine_list' %}" class="nav-item-link" style="color: #fbbf24; margin-bottom: 0.5rem;" title="Alerts">
-
                     <i class="bi bi-bell-fill"></i>
-
                     <span>Alerts</span>
-
                     <span class="badge rounded-pill bg-danger ms-auto nav-badge">{{ nav_low_stock_count }}</span>
-
                 </a>
-
                 {% endif %}
-
-
 
                 <a href="{% url 'settings' %}" class="nav-item-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}" style="margin-bottom: 0.75rem;" title="Settings">
-
                     <i class="bi bi-gear-fill"></i>
-
                     <span>Settings</span>
-
                 </a>
-
                 {% if user.is_authenticated %}
-
                 <div class="user-profile-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.8rem;">
-
                     <div style="display: flex; align-items: center; gap: 0.6rem; overflow: hidden;">
-
                         <div class="user-avatar-glow" title="{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username|title }}{% endif %}">
-
                             {% if user.first_name %}
-
                             {{ user.first_name|slice:":1"|upper }}{% if user.last_name %}{{ user.last_name|slice:":1"|upper }}{% endif %}
-
                             {% else %}
-
                             {{ user.username|slice:":1"|upper }}
-
                             {% endif %}
-
                         </div>
-
                         <div class="user-info-text" style="overflow: hidden; font-size: 0.85rem; font-weight: 600;">
-
                             {% if user.first_name %}
-
                             {{ user.first_name }} {{ user.last_name }}
-
                             {% else %}
-
                             {{ user.username|title }}
-
                             {% endif %}
-
                         </div>
-
                     </div>
 
-
-
                     <form action="{% url 'logout' %}" method="post" style="margin: 0;">
-
                         {% csrf_token %}
-
                         <button type="submit" class="btn-logout" title="Logout">
-
                             <i class="bi bi-box-arrow-right" style="font-size: 1.3rem;"></i>
-
                         </button>
-
                     </form>
-
                 </div>
-
                 {% endif %}
-
             </div>
-
         </aside>
 
-
-
         <!-- MAIN CONTAINER -->
-
         <div class="main-container">
-
             <header class="mobile-topbar">
-
                 <button class="btn btn-outline-secondary btn-sm" id="openSidebarBtn" aria-label="Toggle Menu">
-
                     <i class="bi bi-list" style="font-size: 1.5rem;"></i>
-
                 </button>
-
                 <span style="font-weight: 800; font-size: 0.95rem; letter-spacing: 0.05em;">CLINIC SYSTEM</span>
-
                 <div style="width: 44px;"></div>
-
             </header>
 
-
-
             <main class="content-main" style="background-image: url(&quot;{% static 'clinic/img/studentbackground.png' %}&quot;); background-repeat: repeat; background-size: cover; background-attachment: fixed;">
-
                 <div class="content-overlay"></div>
-
                 <div class="content-inner">
-
                     {% block content %}{% endblock %}
-
                 </div>
-
             </main>
-
         </div>
-
     </div>
-
-
 
     <!-- Floating Toast Notification Container -->
-
     <div class="toast-container-custom">
-
         {% if messages %}
-
         {% for message in messages %}
-
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-lg rounded-3 auto-dismiss-alert border-0 fw-medium text-dark" role="alert">
-
             <div class="d-flex align-items-center">
-
                 <i class="bi bi-info-circle-fill fs-5 me-2"></i>
-
                 <div class="flex-grow-1">
-
                     {{ message }}
-
                 </div>
-
                 <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
-
             </div>
-
         </div>
-
         {% endfor %}
-
         {% endif %}
-
     </div>
 
-
-
     <!-- Bootstrap Bundle JS Muna bago ang Custom Script -->
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-
         document.addEventListener("DOMContentLoaded", function () {
-
             const sidebar = document.getElementById("appSidebar");
-
             const overlay = document.getElementById("sidebarOverlay");
-
             const openBtn = document.getElementById("openSidebarBtn");
-
             const desktopToggleBtn = document.getElementById("toggleSidebarDesktopBtn");
-
             const logoToggleBtn = document.getElementById("logoToggleBtn");
 
-
-
             // Load saved desktop sidebar state
-
             if (localStorage.getItem('sidebarCollapsed') === 'true') {
-
                 document.body.classList.add('sidebar-collapsed');
-
             }
-
-
 
             if (desktopToggleBtn) {
-
                 desktopToggleBtn.addEventListener("click", function () {
-
                     document.body.classList.toggle("sidebar-collapsed");
-
                     const isCollapsed = document.body.classList.contains("sidebar-collapsed");
-
                     localStorage.setItem('sidebarCollapsed', isCollapsed);
-
                 });
-
             }
-
-
 
             if (logoToggleBtn) {
-
                 logoToggleBtn.addEventListener("click", function () {
-
                     if (document.body.classList.contains("sidebar-collapsed")) {
-
                         document.body.classList.remove("sidebar-collapsed");
-
                         localStorage.setItem('sidebarCollapsed', 'false');
-
                     }
-
                 });
-
             }
-
            
-
-            // Pinatibay na Mobile Sidebar Toggle para sa Android WebView
-
+            // Instant Toggle para sa Mobile WebView (walang delay)
             function toggleMobileSidebar(e) {
-
                 if (e) {
-
                     e.preventDefault();
-
                     e.stopPropagation();
-
                 }
-
                 if (sidebar) {
-
                     sidebar.classList.toggle("show");
-
                     if (sidebar.classList.contains("show")) {
-
                         sidebar.style.transform = "translateX(0)";
-
                         sidebar.style.visibility = "visible";
-
                         sidebar.style.display = "flex";
-
                     } else {
-
                         sidebar.style.transform = "translateX(-100%)";
-
                     }
-
                 }
-
                 if (overlay) {
-
                     overlay.classList.toggle("show");
-
                 }
-
             }
-
-
 
             if (openBtn) {
-
                 openBtn.addEventListener("click", toggleMobileSidebar);
-
                 openBtn.addEventListener("touchstart", function(e) {
-
                     e.preventDefault();
-
                     toggleMobileSidebar(e);
-
                 }, { passive: false });
-
             }
-
-
 
             if (overlay) {
-
                 overlay.addEventListener("click", toggleMobileSidebar);
-
                 overlay.addEventListener("touchstart", function(e) {
-
                     e.preventDefault();
-
                     toggleMobileSidebar(e);
-
                 }, { passive: false });
-
             }
 
-
-
             // Auto close mobile sidebar kapag pinindot ang navigation links
-
             const navLinks = sidebar ? sidebar.querySelectorAll('.nav-item-link') : [];
-
             navLinks.forEach(link => {
-
                 link.addEventListener("click", function () {
-
                     if (window.innerWidth <= 991.98) {
-
                         sidebar.classList.remove("show");
-
                         sidebar.style.transform = "translateX(-100%)";
-
                         overlay.classList.remove("show");
-
                     }
-
                 });
-
             });
-
         });
 
-
-
         setTimeout(function () {
-
             let alerts = document.querySelectorAll('.auto-dismiss-alert');
-
             alerts.forEach(function (alert) {
-
                 let bsAlert = new bootstrap.Alert(alert);
-
                 bsAlert.close();
-
             });
-
         }, 5000);
-
     </script>
-
     {% block extra_js %}{% endblock %}
-
 </body>
 </html>
