@@ -11,14 +11,22 @@
 
     <!-- PWA Manifest & Apple Meta Tags -->
     <link rel="manifest" href="{% static 'clinic/manifest.json' %}">
-    <meta name="theme-color" content="#0F3569">
+    
+    <!-- ITO ANG MAHALAGA PARA SA IOS BACKGROUND COLOR: -->
+    <!-- theme-color: Ginagamit ng Safari para sa status bar at minsan sa splash screen background -->
+    <meta name="theme-color" content="#0F3569"> 
+    
+    <!-- apple-mobile-web-app-status-bar-style: Pwede ring makatulong sa background color -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- O kaya ay "default" -->
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Clinic System">
     
-    <!-- Apple Icons & Splash Screen -->
-    <link rel="apple-touch-icon" href="{% static 'clinic/icons/icon-192x192.png' %}">
-    <link rel="apple-touch-startup-image" href="{% static 'clinic/icons/ice.png' %}">
+    <!-- Apple Icons (Siguraduhin mong tama ang path ng gusto mong icon, gaya ng ice.png o icon-192) -->
+    <link rel="apple-touch-icon" href="{% static 'clinic/icons/ice.png' %}">
+    
+    <!-- Pansamantalang i-comment o tanggalin muna ito habang inaayos natin ang dark screen issue -->
+    <!-- <link rel="apple-touch-startup-image" href="{% static 'clinic/icons/ice.png' %}"> -->
 </head>
     <script>
         (function () {
