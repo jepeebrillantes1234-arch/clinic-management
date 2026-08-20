@@ -462,6 +462,7 @@
         const chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            animation: false, // Explicitly disabled Chart.js animations as well
             plugins: { legend: { display: false } },
             scales: {
                 y: { beginAtZero: true, ticks: { stepSize: 1, color: textColor }, grid: { color: gridColor } },
@@ -494,6 +495,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: textColor } } }
             }
         });
@@ -508,6 +510,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false,
                 indexAxis: 'y',
                 plugins: { legend: { display: false } },
                 scales: {
