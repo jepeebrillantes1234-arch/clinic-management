@@ -1,0 +1,742 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Recent Activities - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        
+        /* LIGHT MODE DEFAULTS */
+        --card-bg: #ffffff;
+        --card-border: #e2e8f0;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --row-border: #f1f5f9;
+        --table-header-bg: #f8fafc;
+        --hero-bg: linear-gradient(135deg, #0f3569 0%, #1e293b 100%);
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        --input-bg: #ffffff;
+        --page-bg: #f8fafc;
+        
+        --overlay-bg: rgba(15, 23, 42, 0.45);
+        --modal-bg: rgba(255, 255, 255, 0.95);
+        --modal-border: rgba(226, 232, 240, 0.9);
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    /* DARK MODE SUPPORT */
+    body.dark-mode,
+    [data-bs-theme="dark"],
+    .dark-theme {
+        --card-bg: #1e293b;
+        --card-border: rgba(255, 255, 255, 0.12);
+        --text-primary: #ffffff;
+        --text-secondary: #cbd5e1;
+        --row-border: rgba(255, 255, 255, 0.08);
+        --table-header-bg: #0f172a;
+        --hero-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        --input-bg: #0f172a;
+        --page-bg: #0b1329;
+
+        --overlay-bg: rgba(2, 6, 23, 0.7);
+        --modal-bg: rgba(30, 41, 59, 0.92);
+        --modal-border: rgba(255, 255, 255, 0.12);
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+        font-family: var(--font-primary) !important;
+        color: var(--text-primary);
+        background-color: var(--page-bg);
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .cms-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.5rem 1rem 2rem 1rem;
+        box-sizing: border-box;
+    }
+
+    .dashboard-hero-card {
+        background: var(--hero-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem 1.75rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+    }
+
+    .dashboard-hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #38bdf8, #8b5cf6);
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0 0 0.25rem 0;
+    }
+
+    .hero-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
+    .btn-cms-action {
+        background: #ffffff;
+        color: #0F172A !important;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.55rem 1.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: var(--transition-smooth);
+        text-decoration: none;
+    }
+
+    .btn-cms-action:hover {
+        background: #f8fafc;
+        transform: translateY(-2px);
+    }
+
+    .controls-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-md);
+        padding: 1rem 1.25rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .search-input-group .form-control {
+        background: var(--input-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 0.75rem;
+    }
+
+    .search-input-group .form-control::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.7;
+    }
+
+    .search-input-group .form-control:focus {
+        background: var(--input-bg);
+        color: var(--text-primary);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+        border-color: #38bdf8;
+    }
+
+    .activity-table-wrapper {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-lg);
+        border: 1px solid var(--card-border);
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .activity-table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        background: var(--table-header-bg);
+        font-weight: 700;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .activity-table td {
+        padding: 16px 20px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--row-border);
+        color: var(--text-primary);
+        vertical-align: middle;
+    }
+
+    .activity-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .activity-table tbody tr:hover {
+        background-color: rgba(56, 189, 248, 0.04);
+    }
+
+    .activity-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+        width: 1.2em;
+        height: 1.2em;
+        background-color: var(--input-bg);
+        border: 1px solid var(--card-border);
+    }
+
+    .form-check-input:checked {
+        background-color: #0284c7;
+        border-color: #0284c7;
+    }
+
+    .activity-mobile-list {
+        display: none;
+    }
+
+    @media (max-width: 992px) {
+        .dashboard-hero-card {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 16px;
+        }
+        .btn-cms-action {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .activity-table-wrapper {
+            display: none;
+        }
+        .activity-mobile-list {
+            display: block;
+        }
+    }
+
+    /* Custom Confirmation Modal Styles */
+    .confirm-modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background-color: var(--overlay-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.25rem;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .confirm-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .confirm-modal-box {
+        background: var(--modal-bg);
+        border: 1px solid var(--modal-border);
+        border-radius: 20px;
+        width: 100%;
+        max-width: 460px;
+        padding: 2rem;
+        box-shadow: var(--modal-shadow);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        position: relative;
+        font-family: var(--font-primary);
+        transform: scale(0.95) translateY(10px);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .confirm-modal-overlay.active .confirm-modal-box {
+        transform: scale(1) translateY(0);
+    }
+
+    .warning-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        color: #EF4444;
+        font-size: 1.65rem;
+    }
+
+    .confirm-modal-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .confirm-modal-text {
+        font-size: 0.925rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .warning-subtext {
+        color: #EF4444;
+        font-size: 0.825rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .btn-modal {
+        font-size: 0.875rem;
+        font-weight: 700;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        text-decoration: none !important;
+        transition: var(--transition-smooth);
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        outline: none;
+    }
+
+    .btn-cancel-modal {
+        background-color: var(--card-bg);
+        border-color: var(--card-border);
+        color: var(--text-secondary);
+    }
+
+    .btn-cancel-modal:hover {
+        background-color: var(--table-header-bg);
+        color: var(--text-primary);
+    }
+
+    .btn-delete-modal {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-delete-modal:hover {
+        background: linear-gradient(135deg, #DC2626 100%, #B91C1C 100%);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+    }
+</style>
+
+<div class="cms-container">
+
+    <!-- HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+        <div class="d-flex align-items-center gap-3">
+            <div style="background: rgba(255, 255, 255, 0.15); padding: 12px; border-radius: 14px; color: #ffffff;">
+                <i class="bi bi-clock-history fs-2"></i>
+            </div>
+            <div>
+                <h1 class="hero-title">Recent Activities</h1>
+                <p class="hero-subtitle">Comprehensive audit log of system actions and user events.</p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'dashboard' %}" class="btn-cms-action">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTROL BAR -->
+    <div class="controls-card mb-4">
+        <form method="GET" action="" id="searchForm" class="row g-3 align-items-center">
+            <div class="col-12 col-md-6 col-lg-7">
+                <div class="input-group search-input-group">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--card-border); color: var(--text-secondary);">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" id="searchInput" class="form-control border-start-0 ps-0" 
+                            placeholder="Search activity records (e.g., medicine, student name)..." value="{{ request.GET.q|default:'' }}">
+                    {% if request.GET.q %}
+                    <a href="{% url 'activity_log_list' %}" class="btn btn-outline-secondary border-start-0 d-flex align-items-center" style="border-color: var(--card-border); color: var(--text-primary);">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-5 d-flex justify-content-md-end gap-2">
+                <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 d-flex align-items-center gap-1 fw-bold" 
+                        id="btnOpenSelectedModal" disabled>
+                    <i class="bi bi-trash"></i> Delete Selected (<span id="selectedCount">0</span>)
+                </button>
+                <button type="button" class="btn btn-danger btn-sm px-3 py-2 d-flex align-items-center gap-1 fw-bold" 
+                        id="btnOpenAllModal">
+                    <i class="bi bi-trash3-fill"></i> Delete All
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- BATCH DELETE FORM -->
+    <form method="POST" action="{% url 'delete_selected_activities' %}" id="batchDeleteForm">
+        {% csrf_token %}
+
+        <!-- DESKTOP TABLE -->
+        <div class="activity-table-wrapper table-responsive">
+            <table class="table activity-table align-middle m-0">
+                <thead>
+                    <tr>
+                        <th style="width: 45px;">
+                            <input class="form-check-input" type="checkbox" id="selectAllDesktop">
+                        </th>
+                        <th style="width: 18%;">Action</th>
+                        <th style="width: 27%;">Activity Details</th>
+                        <th style="width: 22%;">Description</th>
+                        <th style="width: 14%;">Performed By</th>
+                        <th style="width: 14%;">Date &amp; Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in activities %}
+                    <tr>
+                        <td>
+                            <input class="form-check-input activity-checkbox desktop-cb" type="checkbox" name="activity_ids" value="{{ activity.id }}">
+                        </td>
+                        <td>
+                            {% if "dispensed" in activity.action|lower or "dispense" in activity.action|lower %}
+                                <span class="badge bg-warning text-dark px-2 py-2 fw-semibold" style="font-size: 0.75rem; border-radius: 6px;">
+                                    <i class="bi bi-capsule me-1"></i> Medicine Dispensed
+                                </span>
+                            {% elif "student" in activity.action|lower or "registered" in activity.action|lower %}
+                                <span class="badge bg-success text-white px-2 py-2 fw-semibold" style="font-size: 0.75rem; border-radius: 6px;">
+                                    <i class="bi bi-person-plus-fill me-1"></i> Student Added
+                                </span>
+                            {% elif "medicine added" in activity.action|lower or "medicine" in activity.action|lower %}
+                                <span class="badge bg-info text-dark px-2 py-2 fw-semibold" style="font-size: 0.75rem; border-radius: 6px;">
+                                    <i class="bi bi-prescription2 me-1"></i> Medicine Added
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary text-white px-2 py-2 fw-semibold" style="font-size: 0.75rem; border-radius: 6px;">
+                                    <i class="bi bi-activity me-1"></i> {{ activity.action|default:"System Event"|truncatewords:3 }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold" style="color: var(--text-primary); word-break: break-word;">
+                            {% if activity.details %}{{ activity.details }}{% else %}{{ activity }}{% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary); word-break: break-word;">
+                            {% if activity.description %}
+                                {{ activity.description }}
+                            {% elif activity.details %}
+                                {{ activity.details }}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <!-- SAFEGUARDED USER DISPLAY (DESKTOP) -->
+                        <td style="color: var(--text-secondary); white-space: nowrap;">
+                            <i class="bi bi-person-circle me-1 text-info"></i>
+                            <strong>
+                                {% if activity.user %}
+                                    {{ activity.user.get_full_name|default:activity.user.username }}
+                                {% else %}
+                                    System
+                                {% endif %}
+                            </strong>
+                        </td>
+                        <td style="color: var(--text-secondary); white-space: nowrap;">
+                            {{ activity.timestamp|date:"M d, Y - g:i A"|default:"—" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5" style="color: var(--text-secondary);">
+                            <i class="bi bi-inbox fs-2 d-block mb-2 text-info"></i>
+                            No activity records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- MOBILE CARD VIEW -->
+        <div class="activity-mobile-list d-md-none">
+            {% if activities %}
+            <div class="mb-3 ps-1 d-flex align-items-center gap-2">
+                <input class="form-check-input" type="checkbox" id="selectAllMobile">
+                <label for="selectAllMobile" class="form-check-label fw-semibold" style="color: var(--text-secondary);">Select All Items</label>
+            </div>
+            {% endif %}
+
+            {% for activity in activities %}
+            <div class="activity-mobile-card mb-3 p-3 rounded" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <input class="form-check-input activity-checkbox mobile-cb" type="checkbox" name="activity_ids" value="{{ activity.id }}">
+                        <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ activity.action|default:"Activity" }}</span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);">{{ activity.timestamp|date:"M d, Y"|default:"" }}</span>
+                </div>
+                <div class="fw-bold mb-1" style="color: var(--text-primary); font-size: 0.9rem;">{{ activity.details|default:activity }}</div>
+                <div style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 8px;">{{ activity.description|default:"—" }}</div>
+                <div class="d-flex justify-content-between align-items-center" style="font-size: 0.75rem; color: var(--text-secondary);">
+                    <!-- SAFEGUARDED USER DISPLAY (MOBILE) -->
+                    <span>
+                        <i class="bi bi-person-circle me-1 text-info"></i>
+                        {% if activity.user %}
+                            {{ activity.user.get_full_name|default:activity.user.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+                    </span>
+                    <span><i class="bi bi-clock me-1"></i>{{ activity.timestamp|date:"g:i A"|default:"—" }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="activity-mobile-card text-center py-5" style="color: var(--text-secondary);">
+                <i class="bi bi-inbox fs-2 d-block mb-2 text-info"></i>
+                No activity records found.
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+
+</div>
+
+<!-- UNIFIED CONFIRMATION MODAL -->
+<div class="confirm-modal-overlay" id="customConfirmModal" role="dialog" aria-modal="true">
+    <div class="confirm-modal-box">
+        <div class="warning-icon-wrapper">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h3 class="confirm-modal-title" id="modalTitleText">Confirm Action</h3>
+        
+        <div class="confirm-modal-text">
+            <span id="modalBodyText">Are you sure you want to proceed with this action?</span>
+            
+            <div class="warning-subtext">
+                <i class="bi bi-info-circle-fill"></i>
+                <span id="modalSubText">This action cannot be undone.</span>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal btn-cancel-modal" id="modalCancelBtn">
+                Cancel
+            </button>
+            <button type="button" class="btn-modal btn-delete-modal" id="modalConfirmBtn">
+                <i class="bi bi-trash3-fill" id="modalBtnIcon"></i>
+                <span id="modalBtnText">Yes, Delete</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript Logic -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllDesktop = document.getElementById('selectAllDesktop');
+    const selectAllMobile = document.getElementById('selectAllMobile');
+    const desktopCheckboxes = document.querySelectorAll('.desktop-cb');
+    const mobileCheckboxes = document.querySelectorAll('.mobile-cb');
+    const btnOpenSelectedModal = document.getElementById('btnOpenSelectedModal');
+    const btnOpenAllModal = document.getElementById('btnOpenAllModal');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const batchDeleteForm = document.getElementById('batchDeleteForm');
+
+    const customConfirmModal = document.getElementById('customConfirmModal');
+    const modalTitleText = document.getElementById('modalTitleText');
+    const modalBodyText = document.getElementById('modalBodyText');
+    const modalSubText = document.getElementById('modalSubText');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+    const modalBtnText = document.getElementById('modalBtnText');
+
+    let currentActionType = null;
+
+    function getActiveCheckboxes() {
+        const isMobile = window.innerWidth <= 768;
+        return isMobile ? mobileCheckboxes : desktopCheckboxes;
+    }
+
+    function updateDeleteButton() {
+        const activeBoxes = getActiveCheckboxes();
+        let count = 0;
+        activeBoxes.forEach(cb => {
+            if (cb.checked) count++;
+        });
+        
+        selectedCountSpan.textContent = count;
+        if (count > 0) {
+            btnOpenSelectedModal.removeAttribute('disabled');
+        } else {
+            btnOpenSelectedModal.setAttribute('disabled', 'disabled');
+        }
+    }
+
+    function syncCheckboxes(index, state) {
+        if (desktopCheckboxes[index]) desktopCheckboxes[index].checked = state;
+        if (mobileCheckboxes[index]) mobileCheckboxes[index].checked = state;
+        updateDeleteButton();
+    }
+
+    if (selectAllDesktop) {
+        selectAllDesktop.addEventListener('change', function() {
+            desktopCheckboxes.forEach((cb, i) => syncCheckboxes(i, this.checked));
+            if (selectAllMobile) selectAllMobile.checked = this.checked;
+        });
+    }
+
+    if (selectAllMobile) {
+        selectAllMobile.addEventListener('change', function() {
+            mobileCheckboxes.forEach((cb, i) => syncCheckboxes(i, this.checked));
+            if (selectAllDesktop) selectAllDesktop.checked = this.checked;
+        });
+    }
+
+    desktopCheckboxes.forEach((cb, index) => {
+        cb.addEventListener('change', function() {
+            syncCheckboxes(index, this.checked);
+        });
+    });
+
+    mobileCheckboxes.forEach((cb, index) => {
+        cb.addEventListener('change', function() {
+            syncCheckboxes(index, this.checked);
+        });
+    });
+
+    if (btnOpenSelectedModal) {
+        btnOpenSelectedModal.addEventListener('click', function() {
+            currentActionType = 'selected';
+            modalTitleText.textContent = "Delete Selected Records?";
+            modalBodyText.textContent = "You are about to permanently delete the selected activity logs.";
+            modalSubText.textContent = "Selected logs will be removed from the audit history.";
+            modalBtnText.textContent = "Yes, Delete Selected";
+            customConfirmModal.classList.add('active');
+        });
+    }
+
+    if (btnOpenAllModal) {
+        btnOpenAllModal.addEventListener('click', function() {
+            currentActionType = 'all';
+            modalTitleText.textContent = "Clear All Activity Logs?";
+            modalBodyText.textContent = "Are you sure you want to delete ALL activity logs? This will completely wipe out the audit history.";
+            modalSubText.textContent = "This action is extremely permanent and cannot be undone.";
+            modalBtnText.textContent = "Yes, Delete Everything";
+            customConfirmModal.classList.add('active');
+        });
+    }
+
+    function closeModal() {
+        customConfirmModal.classList.remove('active');
+    }
+
+    if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
+    customConfirmModal.addEventListener('click', function(e) {
+        if (e.target === customConfirmModal) closeModal();
+    });
+
+    // === AJAX LIVE SEARCH IMPLEMENTATION (Walang Page Refresh) ===
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.querySelector('.activity-table tbody'); // Palitan kung iba ang selector ng table mo
+    const mobileList = document.querySelector('.activity-mobile-list'); // Palitan kung iba ang mobile list mo
+
+    if (searchInput) {
+        let typingTimer;
+        const doneTypingInterval = 400; // Milliseconds
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(typingTimer);
+            const query = this.value;
+
+            typingTimer = setTimeout(function() {
+                fetch(`?q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newTableBody = doc.querySelector('.activity-table tbody');
+                    const newMobileList = doc.querySelector('.activity-mobile-list');
+
+                    if (newTableBody && tableBody) {
+                        tableBody.innerHTML = newTableBody.innerHTML;
+                    }
+                    if (newMobileList && mobileList) {
+                        mobileList.innerHTML = newMobileList.innerHTML;
+                    }
+                })
+                .catch(err => console.error('Search error:', err));
+            }, doneTypingInterval);
+        });
+    }
+
+    if (modalConfirmBtn) {
+        modalConfirmBtn.addEventListener('click', function() {
+            if (currentActionType === 'selected') {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    desktopCheckboxes.forEach(cb => cb.disabled = true);
+                } else {
+                    mobileCheckboxes.forEach(cb => cb.disabled = true);
+                }
+                batchDeleteForm.submit();
+            } else if (currentActionType === 'all') {
+                const deleteallForm = document.createElement('form');
+                deleteallForm.method = 'POST';
+                deleteallForm.action = "{% url 'delete_all_activities' %}";
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+                
+                deleteallForm.appendChild(csrfInput);
+                document.body.appendChild(deleteallForm);
+                deleteallForm.submit();
+            }
+        });
+    }
+
+    window.addEventListener('resize', updateDeleteButton);
+});
+</script>
+{% endblock %}

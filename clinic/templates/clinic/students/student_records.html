@@ -1,0 +1,623 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Student Directory - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* ==========================================================================
+       1. GLOBAL THEME VARIABLES & BASE STYLES
+       ========================================================================== */
+    :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="light"] {
+        --page-bg: transparent;
+        --card-bg: #FFFFFF;
+        --card-border: #E2E8F0;
+        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --table-header-bg: #F1F5F9;
+        --table-row-hover: #F8FAFC;
+        --table-stripe: #FAFBFD;
+        --input-bg: #FFFFFF;
+        --input-border: #CBD5E1;
+        --accent-primary: #2563EB;
+        --accent-primary-hover: #1D4ED8;
+        --accent-cyan: #06B6D4;
+        --badge-id-bg: #EFF6FF;
+        --badge-id-text: #2563EB;
+        --badge-id-border: #BFDBFE;
+        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    [data-bs-theme="dark"] {
+        --page-bg: transparent;
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        --text-main: #F8FAFC;
+        --text-muted: #94A3B8;
+        --table-header-bg: rgba(15, 23, 42, 0.85);
+        --table-row-hover: rgba(56, 189, 248, 0.05);
+        --table-stripe: rgba(255, 255, 255, 0.015);
+        --input-bg: rgba(15, 23, 42, 0.6);
+        --input-border: rgba(255, 255, 255, 0.12);
+        --accent-primary: #38BDF8;
+        --accent-primary-hover: #0284C7;
+        --accent-cyan: #22D3EE;
+        --badge-id-bg: rgba(56, 189, 248, 0.1);
+        --badge-id-text: #38BDF8;
+        --badge-id-border: rgba(56, 189, 248, 0.25);
+        --hero-bg: rgba(30, 41, 59, 0.7);
+    }
+
+    .cms-container {
+        font-family: var(--font-primary);
+        background-color: transparent;
+        color: var(--text-main);
+        padding: 0;
+        transition: background-color 0.3s ease;
+    }
+
+    /* Glassmorphism Card Style */
+    .cms-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: var(--transition-smooth);
+    }
+
+    /* ==========================================================================
+       2. DASHBOARD-STYLE HERO HEADER
+       ========================================================================== */
+    .dashboard-hero-card {
+        background: var(--hero-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--accent-primary);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-main);
+        margin: 0 0 0.35rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .logo-box {
+        width: 68px;
+        height: 68px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    .logo-box img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* ==========================================================================
+       3. DASHBOARD STAT CARDS
+       ========================================================================== */
+    .stat-card {
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+    .stat-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--border-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+    .stat-icon-blue { background: rgba(37, 99, 235, 0.12); color: #2563EB; }
+    .stat-icon-cyan { background: rgba(6, 182, 212, 0.12); color: #06B6D4; }
+    .stat-icon-purple { background: rgba(147, 51, 234, 0.12); color: #9333EA; }
+    .stat-icon-emerald { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+
+    .stat-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+    }
+
+    /* ==========================================================================
+       4. ACTION BUTTONS & SEARCH BAR
+       ========================================================================== */
+    .btn-cms-primary {
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: var(--border-radius-md);
+        padding: 0.65rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: var(--transition-smooth);
+    }
+    .btn-cms-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        color: #FFFFFF;
+    }
+
+    .search-input-group {
+        position: relative;
+        width: 100%;
+    }
+    .search-input-group .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+        z-index: 5;
+    }
+    .cms-search-input {
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-main);
+        border-radius: var(--border-radius-md);
+        padding: 0.65rem 1rem 0.65rem 2.6rem;
+        font-size: 0.875rem;
+        transition: var(--transition-smooth);
+    }
+    .cms-search-input:focus {
+        outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn-cms-filter {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        border-radius: var(--border-radius-md);
+        padding: 0.65rem 1rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition-smooth);
+    }
+    .btn-cms-filter:hover {
+        background: var(--table-header-bg);
+        color: var(--text-main);
+    }
+
+    /* ==========================================================================
+       5. REFINED TABLE DESIGN
+       ========================================================================== */
+    .table-container {
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+    }
+    .cms-table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .cms-table th {
+        background-color: var(--table-header-bg);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--card-border);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+    .cms-table td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--card-border);
+        color: var(--text-main);
+        vertical-align: middle;
+        font-size: 0.875rem;
+        transition: background 0.15s ease;
+    }
+    .cms-table tbody tr:nth-child(even) {
+        background-color: var(--table-stripe);
+    }
+    .cms-table tbody tr:hover td {
+        background-color: var(--table-row-hover);
+    }
+
+    /* Badges & Elements */
+    .badge-id {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-weight: 700;
+        background: var(--badge-id-bg);
+        color: var(--badge-id-text);
+        border: 1px solid var(--badge-id-border);
+        padding: 4px 10px;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.8rem;
+    }
+    .badge-year {
+        background: rgba(147, 51, 234, 0.1);
+        color: #9333EA;
+        border: 1px solid rgba(147, 51, 234, 0.2);
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 4px 10px;
+        border-radius: 999px;
+    }
+
+    .student-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--card-border);
+    }
+    .student-avatar-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB, #06B6D4);
+        color: #FFFFFF;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-action-view {
+        border: 1px solid var(--card-border);
+        background: var(--card-bg);
+        color: var(--text-main);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: var(--border-radius-sm);
+        transition: var(--transition-smooth);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-action-view:hover {
+        background: var(--accent-primary);
+        color: #FFFFFF !important;
+        border-color: var(--accent-primary);
+    }
+
+    /* ==========================================================================
+       6. PAGINATION & FOOTER
+       ========================================================================== */
+    .cms-pagination .page-link {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        padding: 0.4rem 0.8rem;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.85rem;
+        margin: 0 2px;
+        transition: var(--transition-smooth);
+    }
+    .cms-pagination .page-item.active .page-link {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: #FFFFFF;
+    }
+
+    /* ==========================================================================
+       7. MOBILE CARDS LAYOUT
+       ========================================================================== */
+    .mobile-card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="cms-container">
+
+    <!-- DASHBOARD-STYLE HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <div class="hero-badge">
+                <i class="bi bi-heart-pulse-fill"></i> International Colleges for Excellence, Inc. • Health Portal
+            </div>
+            <h1 class="hero-title">Student Directory</h1>
+            <p class="hero-subtitle">Manage healthcare records and profiles for registered students.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'student_create' %}" class="btn-cms-primary">
+                <i class="bi bi-person-plus-fill"></i> Add Student
+            </a>
+            <div class="logo-box d-none d-sm-flex">
+                <img src="{% static 'clinic/img/student.png' %}" alt="Clinic Logo" class="img-fluid" style="max-height: 100%;">
+            </div>
+        </div>
+    </div>
+
+    <!-- STATISTIC CARDS (DYNAMIC) -->
+    <div class="row g-3 mb-4">
+        <!-- 1. Total Students -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="cms-card stat-card">
+                <div class="stat-icon-wrapper stat-icon-blue">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Total Students</div>
+                    <div class="stat-value">{{ total_students }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Active Nurses -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="cms-card stat-card">
+                <div class="stat-icon-wrapper stat-icon-cyan">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Nurses</div>
+                    <div class="stat-value">{{ total_nurses }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Medicines In-Stock -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="cms-card stat-card">
+                <div class="stat-icon-wrapper stat-icon-purple">
+                    <i class="bi bi-capsule"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Medicines In-Stock</div>
+                    <div class="stat-value">{{ total_medicine_stock }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Dispensed Records -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="cms-card stat-card">
+                <div class="stat-icon-wrapper stat-icon-emerald">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-label">Dispensed Records</div>
+                    <div class="stat-value">{{ total_dispensed }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- SEARCH & CONTROLS -->
+    <div class="cms-card p-3 mb-4">
+        <form method="get" class="row g-2 align-items-center m-0">
+            <div class="col-12 col-md-8 col-lg-6">
+                <div class="search-input-group">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="q" class="form-control cms-search-input"
+                        placeholder="Search student by name, ID number, or course..." value="{{ query|default:'' }}">
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-cms-primary">Search</button>
+            </div>
+            {% if query %}
+            <div class="col-auto">
+                <a href="{% url 'student_list' %}" class="btn btn-cms-filter">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- MAIN STUDENT TABLE WRAPPER FOR LIVE UPDATES -->
+    <div id="student-list-wrapper" class="animate__animated animate__fadeIn">
+
+        <!-- DESKTOP / TABLET VIEW -->
+        <div class="cms-card table-container d-none d-md-block">
+            <div class="table-responsive">
+                <table class="table cms-table align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 14%;">Student ID</th>
+                            <th style="width: 32%;">Student Name</th>
+                            <th style="width: 18%;">Course</th>
+                            <th style="width: 14%;">Year Level</th>
+                            <th style="width: 14%;">Contact</th>
+                            <th style="width: 8%;" class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td><span class="badge-id">{{ student.student_id }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if student.profile_picture %}
+                                    <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="student-avatar">
+                                    {% else %}
+                                    <div class="student-avatar-placeholder">
+                                        {{ student.full_name|slice:":2" }}
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-bold text-main">{{ student.full_name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="fw-medium text-muted">{{ student.course }}</td>
+                            <td><span class="badge-year">{{ student.year_level }}</span></td>
+                            <td class="text-muted"><i class="bi bi-telephone me-1"></i>{{ student.contact_number }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'student_views' student.pk %}" class="btn-action-view">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-folder-x display-5 text-muted d-block mb-2"></i>
+                                <h6 class="fw-bold mb-1">No Students Found</h6>
+                                <p class="text-muted small mb-0">Try adjusting your search criteria or register a new student.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TABLE FOOTER / PAGINATION -->
+            <div class="d-flex justify-content-between align-items-center p-3 border-top border-secondary-subtle">
+                <span class="text-muted small">Showing <strong>{{ students|length }}</strong> records</span>
+                <ul class="pagination cms-pagination m-0">
+                    <li class="page-item disabled"><a class="page-link" href="#"><i class="bi bi-chevron-left"></i></a></li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#"><i class="bi bi-chevron-right"></i></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- MOBILE CARDS VIEW -->
+        <div class="d-block d-md-none">
+            {% for student in students %}
+            <div class="cms-card mobile-card">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-secondary-subtle">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if student.profile_picture %}
+                        <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="student-avatar">
+                        {% else %}
+                        <div class="student-avatar-placeholder">
+                            {{ student.full_name|slice:":2" }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="fw-bold m-0">{{ student.full_name }}</h6>
+                            <span class="badge-id" style="font-size: 0.72rem;">{{ student.student_id }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 small">
+                    <div class="col-6">
+                        <span class="d-block text-muted" style="font-size: 0.72rem;">Course</span>
+                        <span class="fw-semibold">{{ student.course }}</span>
+                    </div>
+                    <div class="col-6">
+                        <span class="d-block text-muted" style="font-size: 0.72rem;">Year Level</span>
+                        <span class="badge-year">{{ student.year_level }}</span>
+                    </div>
+                    <div class="col-12 mt-2">
+                        <span class="d-block text-muted" style="font-size: 0.72rem;">Contact</span>
+                        <span><i class="bi bi-telephone me-1"></i>{{ student.contact_number }}</span>
+                    </div>
+                </div>
+
+                <a href="{% url 'student_views' student.pk %}" class="btn-action-view w-100 justify-content-center py-2">
+                    <i class="bi bi-eye"></i> View Profile
+                </a>
+            </div>
+            {% empty %}
+            <div class="cms-card p-4 text-center">
+                <i class="bi bi-folder-x display-5 text-muted d-block mb-2"></i>
+                <h6 class="fw-bold mb-1">No Students Found</h6>
+                <p class="text-muted small mb-0">Try adjusting your search criteria.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Real-time updates script -->
+<script>
+    setInterval(function () {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                const newContent = doc.getElementById('student-list-wrapper');
+                const currentContent = document.getElementById('student-list-wrapper');
+
+                if (newContent && currentContent) {
+                    currentContent.innerHTML = newContent.innerHTML;
+                }
+            })
+            .catch(error => console.log('Error updating student list:', error));
+    }, 4000);
+</script>
+{% endblock %}

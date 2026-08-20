@@ -1,0 +1,380 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}{% if medicine %}Edit Medicine{% else %}Add Medicine{% endif %} - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* ==========================================================================
+       1. GLOBAL THEME VARIABLES & BASE STYLES
+       ========================================================================== */
+    :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="light"] {
+        --card-bg: #FFFFFF;
+        --card-border: #E2E8F0;
+        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --input-bg: #FFFFFF;
+        --input-border: #CBD5E1;
+        --accent-primary: #2563EB;
+        --accent-primary-hover: #1D4ED8;
+        --btn-cancel-bg: #F1F5F9;
+        --btn-cancel-text: #475569;
+        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    [data-bs-theme="dark"] {
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        --text-main: #F8FAFC;
+        --text-muted: #94A3B8;
+        --input-bg: rgba(15, 23, 42, 0.6);
+        --input-border: rgba(255, 255, 255, 0.12);
+        --accent-primary: #38BDF8;
+        --accent-primary-hover: #0284C7;
+        --btn-cancel-bg: rgba(255, 255, 255, 0.08);
+        --btn-cancel-text: #CBD5E1;
+        --hero-bg: rgba(30, 41, 59, 0.7);
+    }
+
+    .cms-container {
+        font-family: var(--font-primary);
+        color: var(--text-main);
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Glassmorphism Card Style */
+    .cms-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: var(--transition-smooth);
+    }
+
+    /* ==========================================================================
+       2. DASHBOARD-STYLE HERO HEADER
+       ========================================================================== */
+    .dashboard-hero-card {
+        background: var(--hero-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--accent-primary);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-main);
+        margin: 0 0 0.35rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* ==========================================================================
+       3. FORM CONTROLS & LAYOUT
+       ========================================================================== */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .form-group-full {
+        grid-column: 1 / -1;
+    }
+
+    .cms-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .cms-input {
+        width: 100%;
+        height: 46px;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: var(--border-radius-sm);
+        padding: 0 1rem;
+        font-size: 0.875rem;
+        color: var(--text-main);
+        transition: var(--transition-smooth);
+        outline: none;
+    }
+
+    .cms-input:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .cms-input[type="file"] {
+        padding: 0.5rem 0.75rem;
+        height: auto;
+        cursor: pointer;
+    }
+
+    /* Image Preview Container */
+    .image-preview-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border-radius: var(--border-radius-sm);
+        background: rgba(100, 116, 139, 0.06);
+        border: 1px dashed var(--card-border);
+    }
+
+    .current-image-preview {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--card-border);
+    }
+
+    /* Buttons */
+    .button-area {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-cms-primary {
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: var(--transition-smooth);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-cms-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-cms-cancel {
+        background: var(--btn-cancel-bg);
+        color: var(--btn-cancel-text) !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-cms-cancel:hover {
+        background: rgba(100, 116, 139, 0.15);
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .button-area {
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+
+        .button-area .btn-cms-primary,
+        .button-area .btn-cms-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="cms-container">
+
+    <!-- 1. HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+        <div>
+            <div class="hero-badge">
+                <i class="bi bi-capsule"></i> Inventory Management
+            </div>
+            <h1 class="hero-title">
+                {% if medicine %}Edit Medicine{% else %}Add New Medicine{% endif %}
+            </h1>
+            <p class="hero-subtitle">Enter details below to manage medicine records, stock threshold, and expiration dates.</p>
+        </div>
+        <div class="d-none d-sm-block">
+            <a href="{% url 'medicine_list' %}" class="btn-cms-cancel">
+                <i class="bi bi-arrow-left"></i> Back to Inventory
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. FORM PANEL -->
+    <div class="cms-card p-4 p-md-5 animate__animated animate__fadeIn">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-grid">
+
+                <!-- Medicine Name -->
+                <div class="form-group-full">
+                    <label class="cms-label">
+                        <i class="bi bi-tag-fill text-primary"></i> Medicine Name <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="name" class="cms-input" value="{{ medicine.name|default:'' }}" placeholder="e.g. Paracetamol" required>
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="cms-label">
+                        <i class="bi bi-grid-fill text-info"></i> Category
+                    </label>
+                    <input type="text" name="category" class="cms-input" value="{{ medicine.category|default:'' }}" placeholder="e.g. Pain Reliever">
+                </div>
+
+                <!-- Quantity in Stock -->
+                <div>
+                    <label class="cms-label">
+                        <i class="bi bi-boxes text-warning"></i> Quantity in Stock <span class="text-danger">*</span>
+                    </label>
+                    <input type="number" name="quantity_in_stock" class="cms-input" value="{{ medicine.quantity_in_stock|default:'0' }}" required min="0">
+                </div>
+
+                <!-- Unit -->
+                <div>
+                    <label class="cms-label">
+                        <i class="bi bi-rulers text-secondary"></i> Unit
+                    </label>
+                    <input type="text" name="unit" class="cms-input" value="{{ medicine.unit|default:'pcs' }}" placeholder="e.g. pcs, tablets, mg">
+                </div>
+
+                <!-- Expiration Date -->
+                <div>
+                    <label class="cms-label">
+                        <i class="bi bi-calendar-event text-danger"></i> Expiration Date
+                    </label>
+                    <input type="date" name="expiration_date" class="cms-input" value="{{ medicine.expiration_date|date:'Y-m-d'|default:'' }}">
+                </div>
+
+                <!-- Low Stock Threshold -->
+                <div class="form-group-full">
+                    <label class="cms-label">
+                        <i class="bi bi-exclamation-triangle-fill text-warning"></i> Low Stock Threshold
+                    </label>
+                    <input type="number" name="low_stock_threshold" class="cms-input" value="{{ medicine.low_stock_threshold|default:'10' }}" min="0" placeholder="Minimum level before alerting">
+                </div>
+
+                <!-- Image Upload & Preview -->
+                <div class="form-group-full">
+                    <label class="cms-label">
+                        <i class="bi bi-image-fill text-success"></i> Medicine Photo
+                    </label>
+                    <input type="file" name="image" id="imageInput" class="cms-input" accept="image/*">
+
+                    <div id="previewContainer" class="image-preview-wrapper {% if not medicine.image %}d-none{% endif %}">
+                        <img id="imagePreview" src="{% if medicine.image %}{{ medicine.image.url }}{% endif %}" alt="Preview" class="current-image-preview">
+                        <div>
+                            <span class="d-block fw-semibold fs-7" id="previewLabel">Current Photo</span>
+                            <small class="text-muted fs-8">Upload a new photo to replace this image.</small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-area">
+                <a href="{% url 'medicine_list' %}" class="btn-cms-cancel">Cancel</a>
+                <button type="submit" class="btn-cms-primary">
+                    <i class="bi bi-check-circle-fill"></i> Save Medicine
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- Client-side Image Preview Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewLabel = document.getElementById('previewLabel');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        previewContainer.classList.remove('d-none');
+                        previewLabel.textContent = "New Photo Selected";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

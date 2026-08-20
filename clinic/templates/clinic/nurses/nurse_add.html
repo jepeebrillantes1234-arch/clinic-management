@@ -1,0 +1,290 @@
+{% extends "clinic/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<style>
+    /* ===== CONTAINER LAYOUT ===== */
+    .form-container {
+        max-width: 100%;
+        margin: 1.5rem auto;
+        padding: 0 1rem;
+    }
+
+    /* ===== TOP BANNER (MATCHES SYSTEM DESIGN) ===== */
+    .top-blue-banner {
+        background: linear-gradient(135deg, #0F3569 0%, #1e40af 60%, #38bdf8 130%);
+        color: #ffffff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 8px 25px rgba(15, 53, 105, 0.25);
+    }
+
+    .top-blue-banner h2 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        margin: 0;
+        color: #ffffff !important;
+        text-transform: uppercase;
+    }
+
+    .top-blue-banner p {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin: 3px 0 0 0;
+    }
+
+    /* ===== FORM GLASS CARD ===== */
+    .form-card {
+        background: var(--sidebar-bg);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border: 1px solid var(--sidebar-border);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
+
+    /* ===== AVATAR SECTION ===== */
+    .avatar-preview-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100px;
+        margin: 0 auto;
+    }
+
+    .form-avatar-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--glow-blue);
+        box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+    }
+
+    .form-avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #38bdf8 0%, #0F3569 100%);
+        color: #ffffff;
+        font-size: 2.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--glow-blue);
+        box-shadow: 0 6px 16px rgba(56, 189, 248, 0.3);
+    }
+
+    /* ===== DJANGO FORM FIELD STYLING ===== */
+    .form-group-custom {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group-custom label {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+
+    .form-group-custom input[type="text"],
+    .form-group-custom input[type="email"],
+    .form-group-custom input[type="file"],
+    .form-group-custom select,
+    .form-group-custom textarea {
+        width: 100%;
+        padding: 0.7rem 0.9rem;
+        border-radius: 10px;
+        border: 1px solid var(--sidebar-border);
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        font-size: 0.92rem;
+        transition: all 0.25s ease;
+    }
+
+    .form-group-custom input:focus,
+    .form-group-custom select:focus,
+    .form-group-custom textarea:focus {
+        outline: none;
+        border-color: var(--glow-blue);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+        background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-save-nurse {
+        background: linear-gradient(135deg, #0F3569 0%, #1e40af 100%);
+        color: #ffffff !important;
+        font-weight: 700;
+        border-radius: 10px;
+        padding: 0.7rem 1.5rem;
+        border: none;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 14px rgba(15, 53, 105, 0.3);
+    }
+
+    .btn-save-nurse:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        background: linear-gradient(135deg, #1e40af 0%, #38bdf8 100%);
+    }
+
+    .btn-cancel-custom {
+        border-radius: 10px;
+        padding: 0.7rem 1.5rem;
+        font-weight: 700;
+        color: var(--nav-text);
+        border: 1px solid var(--sidebar-border);
+        background: transparent;
+        transition: all 0.25s ease;
+    }
+
+    .btn-cancel-custom:hover {
+        background: var(--nav-hover-bg);
+        color: var(--text-primary);
+        border-color: var(--glow-blue);
+    }
+
+    /* ===== RESPONSIVE: TABLET & MOBILE ===== */
+    @media (max-width: 576px) {
+        .form-container {
+            margin: 0.75rem auto;
+            padding: 0 0.5rem;
+        }
+
+        .top-blue-banner {
+            padding: 1rem !important;
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+
+        .top-blue-banner h2 {
+            font-size: 1.1rem;
+        }
+
+        .top-blue-banner p {
+            font-size: 0.8rem;
+        }
+
+        .form-card {
+            padding: 1.25rem !important;
+        }
+
+        .form-action-group {
+            flex-direction: column;
+        }
+
+        .btn-save-nurse,
+        .btn-cancel-custom {
+            width: 100%;
+        }
+    }
+
+    @media (min-width: 577px) and (max-width: 768px) {
+        .form-container {
+            max-width: 90%;
+        }
+    }
+</style>
+
+<div class="form-container animate__animated animate__fadeIn">
+    <!-- 1. TOP HEADER BANNER -->
+    <div class="top-blue-banner d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-person-gear fs-3"></i>
+            <div>
+                <h2>{{ title|default:"MANAGE NURSE PROFILE" }}</h2>
+                <p>Fill out the form below to save nurse details.</p>
+            </div>
+        </div>
+        <span class="badge bg-light text-dark fw-semibold px-3 py-2">ICE Clinic</span>
+    </div>
+
+    <!-- 2. FORM GLASS CARD -->
+    <div class="form-card p-4">
+        <form method="post" enctype="multipart/form-data" id="nurseForm">
+            {% csrf_token %}
+
+            <!-- Avatar Preview Header -->
+            <div class="text-center mb-4">
+                <div class="avatar-preview-wrapper mb-2">
+                    {% if nurse.photo %}
+                        <img src="{{ nurse.photo.url }}" alt="{{ nurse.full_name }}" class="form-avatar-img" id="avatarPreview">
+                    {% else %}
+                        <div class="form-avatar-placeholder" id="avatarPlaceholder">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <img src="" alt="Preview" class="form-avatar-img d-none" id="avatarPreview">
+                    {% endif %}
+                </div>
+                <small class="text-muted d-block fw-semibold" style="color: var(--nav-text) !important;">Nurse Profile Photo</small>
+            </div>
+
+            <!-- Dynamic Django Form Fields -->
+            {% for field in form %}
+            <div class="form-group-custom">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}
+                        <span class="text-danger">*</span>
+                    {% endif %}
+                </label>
+
+                {{ field }}
+
+                {% if field.help_text %}
+                    <small class="d-block mt-1" style="font-size: 0.78rem; color: var(--nav-text);">{{ field.help_text }}</small>
+                {% endif %}
+
+                {% if field.errors %}
+                <div class="text-danger mt-1 fw-semibold" style="font-size: 0.8rem;">
+                    <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors|striptags }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-4 pt-3 border-top form-action-group" style="border-color: var(--sidebar-border) !important;">
+                <button type="submit" class="btn btn-save-nurse flex-grow-1 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-check-lg fs-5"></i> Save Nurse Profile
+                </button>
+            <a href="{% url 'nurse_list' %}" class="btn btn-cancel-custom d-flex align-items-center justify-content-center">
+                Cancel
+            </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Image Preview Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.querySelector('input[type="file"]');
+        const imgPreview = document.getElementById('avatarPreview');
+        const placeholder = document.getElementById('avatarPlaceholder');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imgPreview.src = event.target.result;
+                        imgPreview.classList.remove('d-none');
+                        if (placeholder) {
+                            placeholder.classList.add('d-none');
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

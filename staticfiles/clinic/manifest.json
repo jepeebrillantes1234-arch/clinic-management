@@ -1,0 +1,25 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "ICE Clinic Management System",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "ICE Clinic",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "com.ice.clinicapp",
+  "description": "Management system for ICE Clinic.",
+  "icons": [
+    {
+      "src": "/static/clinic/img/cliniclogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/clinic/img/cliniclogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
