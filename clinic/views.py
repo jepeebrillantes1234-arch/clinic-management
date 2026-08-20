@@ -261,13 +261,17 @@ def register(request):
 @role_required("admin", "nurse")
 def student_edit(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    
     if request.method == "POST":
+        # Gamitin ang .get() para ligtas sa error kung may kulang
         student.student_id = request.POST.get("student_id", "")
         
-        # Kung hiwalay din ang fields mo para sa pangalan sa edit form:
+        # Hiwalay na fields para sa pangalan base sa HTML form mo
         student.first_name = request.POST.get("first_name", "")
         student.middle_name = request.POST.get("middle_name", "")
         student.last_name = request.POST.get("last_name", "")
+        
+        # Pagsama-samahin para sa full_name kung kinakailangan sa database
         student.full_name = f"{student.first_name} {student.middle_name} {student.last_name}".strip()
         
         student.age = request.POST.get("age") or None
@@ -278,8 +282,8 @@ def student_edit(request, pk):
         student.year_level = request.POST.get("year_level", "")
         student.section = request.POST.get("section", "")
         student.emergency_contact = request.POST.get("emergency_contact", "")
-        student.save()
         
+        student.save()
         messages.success(request, "Na-update ang impormasyon ng student.")
         return redirect("student_views", pk=student.pk)
         
