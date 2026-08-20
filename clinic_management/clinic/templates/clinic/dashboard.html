@@ -9,7 +9,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
     /* =========================================================
         1. DEFAULT LIGHT MODE
@@ -61,7 +60,7 @@
         color: var(--text-main);
     }
 
-    /* Background Orbs Glow */
+    /* Background Orbs Glow (Walang animation) */
     .ambient-glow {
         position: fixed;
         border-radius: 50%;
@@ -99,7 +98,7 @@
         width: 100%;
     }
 
-    /* ===== ADAPTIVE GLASS CARD ===== */
+    /* ===== ADAPTIVE GLASS CARD (Tinanggal ang transition at transform) ===== */
     .glass-card {
         background: var(--card-bg) !important;
         backdrop-filter: blur(16px) saturate(160%);
@@ -107,13 +106,11 @@
         border: 1px solid var(--card-border) !important;
         border-radius: 1.25rem !important;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
         position: relative;
         overflow: hidden;
     }
 
     .glass-card:hover {
-        transform: translateY(-3px);
         border-color: var(--card-hover-border) !important;
         box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.1);
     }
@@ -201,7 +198,7 @@
     .content-panel { padding: 1.5rem; height: 100%; }
     .panel-title { font-weight: 800; font-size: 1.05rem; color: var(--text-main) !important; }
 
-    /* ===== QUICK ACTIONS ===== */
+    /* ===== QUICK ACTIONS (Tinanggal ang transition/transform) ===== */
     .action-tile {
         background: var(--sub-card-bg);
         border: 1px solid var(--card-border);
@@ -211,31 +208,22 @@
         display: flex;
         align-items: center;
         gap: 0.85rem;
-        transition: all 0.25s ease;
         height: 100%;
     }
 
     .action-tile:hover {
         border-color: var(--neon-blue);
-        transform: translateY(-2px);
     }
 
     .action-title { font-weight: 700; font-size: 0.88rem; color: var(--text-main) !important; }
     .action-desc { font-size: 0.73rem; color: var(--text-muted) !important; }
 
-    /* Status Pulse Dot */
+    /* Status Dot (Inalis ang pulse/blink animation) */
     .pulse-dot-live {
         width: 8px; height: 8px; border-radius: 50%;
         background: var(--neon-green);
         box-shadow: 0 0 8px var(--neon-green);
         display: inline-block; margin-right: 6px;
-        animation: pulseLive 1.8s infinite;
-    }
-
-    @keyframes pulseLive {
-        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
-        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
     .activity-icon {
@@ -613,6 +601,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: false, // <-- IDINAGDAG: Para instant lumabas ang chart nang walang load/draw animation
                 plugins: { 
                     legend: { display: false },
                     tooltip: {
