@@ -5,8 +5,6 @@
 
 {% block content %}
 <!-- External Dependencies -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <style>
@@ -14,30 +12,29 @@
        1. GLOBAL THEME VARIABLES & BASE STYLES
        ========================================================================== */
     :root {
-        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        --border-radius-sm: 10px;
-        --border-radius-md: 14px;
-        --border-radius-lg: 18px;
-        --border-radius-modal: 20px;
-        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 8px;
+        --border-radius-md: 10px;
+        --border-radius-lg: 12px;
+        --border-radius-modal: 12px;
         
         /* Modal Theme Defaults */
-        --overlay-bg: rgba(15, 23, 42, 0.45);
-        --modal-bg: rgba(255, 255, 255, 0.98);
-        --modal-border: rgba(226, 232, 240, 0.9);
+        --overlay-bg: rgba(15, 23, 42, 0.5);
+        --modal-bg: #FFFFFF;
+        --modal-border: #E2E8F0;
         --highlight-bg: #F1F5F9;
         --highlight-text: #0F172A;
         --cancel-btn-bg: #FFFFFF;
         --cancel-btn-border: #E2E8F0;
         --cancel-btn-text: #475569;
         --cancel-btn-hover: #F8FAFC;
-        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+        --modal-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
 
     [data-bs-theme="light"] {
         --card-bg: #FFFFFF;
         --card-border: #E2E8F0;
-        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        --card-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
         --text-main: #0F172A;
         --text-muted: #64748B;
         --accent-primary: #2563EB;
@@ -45,16 +42,16 @@
         --accent-danger: #EF4444;
         --btn-cancel-bg: #F1F5F9;
         --btn-cancel-text: #475569;
-        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+        --hero-bg: #F8FAFC;
         --section-divider: #E2E8F0;
         --table-header-bg: #F8FAFC;
         --table-row-hover: #F8FBFF;
     }
 
     [data-bs-theme="dark"] {
-        --card-bg: rgba(30, 41, 59, 0.75);
-        --card-border: rgba(255, 255, 255, 0.08);
-        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        --card-bg: #1E293B;
+        --card-border: rgba(255, 255, 255, 0.1);
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         --text-main: #F8FAFC;
         --text-muted: #94A3B8;
         --accent-primary: #38BDF8;
@@ -62,22 +59,22 @@
         --accent-danger: #F87171;
         --btn-cancel-bg: rgba(255, 255, 255, 0.08);
         --btn-cancel-text: #CBD5E1;
-        --hero-bg: rgba(30, 41, 59, 0.7);
+        --hero-bg: #1E293B;
         --section-divider: rgba(255, 255, 255, 0.1);
-        --table-header-bg: rgba(15, 23, 42, 0.6);
-        --table-row-hover: rgba(51, 65, 85, 0.4);
+        --table-header-bg: #0F172A;
+        --table-row-hover: #334155;
 
         /* Dark Modal Theme */
-        --overlay-bg: rgba(2, 6, 23, 0.7);
-        --modal-bg: rgba(30, 41, 59, 0.98);
-        --modal-border: rgba(255, 255, 255, 0.12);
-        --highlight-bg: rgba(15, 23, 42, 0.6);
+        --overlay-bg: rgba(2, 6, 23, 0.8);
+        --modal-bg: #1E293B;
+        --modal-border: rgba(255, 255, 255, 0.15);
+        --highlight-bg: #0F172A;
         --highlight-text: #38BDF8;
-        --cancel-btn-bg: rgba(15, 23, 42, 0.5);
-        --cancel-btn-border: rgba(255, 255, 255, 0.12);
+        --cancel-btn-bg: #0F172A;
+        --cancel-btn-border: rgba(255, 255, 255, 0.15);
         --cancel-btn-text: #CBD5E1;
-        --cancel-btn-hover: rgba(30, 41, 59, 0.8);
-        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        --cancel-btn-hover: #334155;
+        --modal-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
 
     .cms-container {
@@ -92,9 +89,6 @@
         border: 1px solid var(--card-border);
         border-radius: var(--border-radius-lg);
         box-shadow: var(--card-shadow);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        transition: var(--transition-smooth);
     }
 
     /* ==========================================================================
@@ -106,8 +100,6 @@
         border-radius: var(--border-radius-lg);
         padding: 1.5rem 1.75rem;
         position: relative;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
     }
 
     .student-avatar-lg {
@@ -116,14 +108,14 @@
         border-radius: 50%;
         object-fit: cover;
         border: 3px solid var(--card-bg);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     .student-avatar-placeholder {
         width: 72px;
         height: 72px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        background: #2563EB;
         color: #FFFFFF;
         font-weight: 800;
         font-size: 1.6rem;
@@ -132,7 +124,7 @@
         justify-content: center;
         text-transform: uppercase;
         border: 3px solid var(--card-bg);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     .hero-title {
@@ -153,7 +145,7 @@
        3. BUTTONS & ACTIONS
        ========================================================================== */
     .btn-cms-primary {
-        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        background: #2563EB;
         color: #FFFFFF !important;
         font-weight: 600;
         font-size: 0.85rem;
@@ -163,15 +155,12 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);
-        transition: var(--transition-smooth);
         text-decoration: none;
         cursor: pointer;
     }
 
     .btn-cms-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+        background: #1D4ED8;
     }
 
     .btn-cms-secondary {
@@ -186,12 +175,11 @@
         align-items: center;
         gap: 6px;
         text-decoration: none;
-        transition: var(--transition-smooth);
         cursor: pointer;
     }
 
     .btn-cms-secondary:hover {
-        background: rgba(100, 116, 139, 0.15);
+        background: rgba(100, 116, 139, 0.2);
     }
 
     .btn-cms-danger {
@@ -206,7 +194,6 @@
         align-items: center;
         gap: 6px;
         text-decoration: none;
-        transition: var(--transition-smooth);
         cursor: pointer;
     }
 
@@ -316,7 +303,6 @@
         text-decoration: none;
         font-weight: 700;
         font-size: 0.82rem;
-        transition: var(--transition-smooth);
         cursor: pointer;
         background: none;
         border: none;
@@ -346,8 +332,6 @@
         width: 100vw;
         height: 100vh;
         background-color: var(--overlay-bg);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         display: none;
         justify-content: center;
         align-items: center;
@@ -357,7 +341,6 @@
 
     .confirm-modal-overlay.active {
         display: flex;
-        animation: fadeInOverlay 0.25s ease-out forwards;
     }
 
     .confirm-modal-box {
@@ -368,7 +351,6 @@
         max-width: 460px;
         padding: 2rem;
         box-shadow: var(--modal-shadow);
-        animation: scaleUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         position: relative;
         font-family: var(--font-primary);
     }
@@ -438,7 +420,6 @@
         padding: 0.65rem 1.25rem;
         border-radius: var(--border-radius-sm);
         text-decoration: none !important;
-        transition: var(--transition-smooth);
         border: 1px solid transparent;
         cursor: pointer;
         display: inline-flex;
@@ -458,35 +439,16 @@
         background-color: var(--cancel-btn-hover);
         color: var(--text-main);
         border-color: rgba(203, 213, 225, 0.8);
-        transform: translateY(-1px);
     }
 
     .btn-delete-action {
-        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        background: #EF4444;
         color: #FFFFFF !important;
-        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
     }
 
     .btn-delete-action:hover {
-        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
-        transform: translateY(-1px);
-    }
-
-    @keyframes fadeInOverlay {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes scaleUpModal {
-        from {
-            opacity: 0;
-            transform: scale(0.95) translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
+        background: #DC2626;
     }
 
     /* Mobile Responsive Rules */
@@ -522,7 +484,7 @@
 
         .confirm-modal-box {
             padding: 1.5rem;
-            border-radius: 16px;
+            border-radius: 12px;
         }
 
         .modal-actions {
@@ -539,7 +501,7 @@
 <div class="cms-container">
 
     <!-- 1. HERO HEADER PROFILE BANNER -->
-    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div class="d-flex align-items-center gap-3">
             {% if student.profile_picture %}
                 <img src="{{ student.profile_picture.url }}" alt="{{ student.full_name }}" class="student-avatar-lg">
@@ -561,7 +523,6 @@
             <a href="{% url 'student_edit' student.pk %}" class="btn-cms-secondary">
                 <i class="bi bi-pencil-square"></i> Edit
             </a>
-            <!-- Delete Button para sa Student Profile Modal -->
             <button type="button" class="btn-cms-danger" id="openStudentModalBtn">
                 <i class="bi bi-trash3"></i> Delete
             </button>
@@ -569,7 +530,7 @@
     </div>
 
     <!-- 2. PERSONAL & ACADEMIC INFORMATION CARD -->
-    <div class="cms-card p-4 p-md-4 mb-4 animate__animated animate__fadeIn">
+    <div class="cms-card p-4 p-md-4 mb-4">
         <div class="section-header-title mb-3">
             <i class="bi bi-card-text"></i> Student Information
         </div>
@@ -637,7 +598,7 @@
         </a>
     </div>
 
-    <div class="cms-card p-0 mb-4 overflow-hidden animate__animated animate__fadeIn">
+    <div class="cms-card p-0 mb-4 overflow-hidden">
         <div class="cms-table-responsive table-responsive">
             <table class="cms-table">
                 <thead>
@@ -672,7 +633,6 @@
                         </td>
                         <td class="text-center">
                             <a href="{% url 'medicine_record_edit' mr.pk %}" class="table-action-link edit me-2">Edit</a>
-                            <!-- Trigger Button para sa Medicine Record Modal -->
                             <button type="button" 
                                     class="table-action-link delete open-med-modal-btn" 
                                     data-delete-url="{% url 'medicine_record_delete' mr.pk %}"
@@ -755,7 +715,7 @@
     </div>
 </div>
 
-<!-- JavaScript para patakbuhin ang dalawang modals nang hindi umaalis ng page -->
+<!-- JavaScript para sa Modals (Walang Animation) -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // --- STUDENT MODAL LOGIC ---
@@ -805,7 +765,6 @@
         const medBtnText = document.getElementById("medBtnText");
         const medHighlightText = document.getElementById("medHighlightText");
 
-        // Makinig sa lahat ng delete buttons sa loob ng medicine table
         const deleteMedButtons = document.querySelectorAll(".open-med-modal-btn");
         deleteMedButtons.forEach(function(btn) {
             btn.addEventListener("click", function() {
@@ -813,13 +772,8 @@
                 const medName = this.getAttribute("data-med-name");
                 const medDate = this.getAttribute("data-med-date");
 
-                // I-set ang tamang action URL sa form
                 medDeleteForm.setAttribute("action", deleteUrl);
-                
-                // I-update ang pangalan ng gamot sa modal text display
                 medHighlightText.textContent = medName + " (" + medDate + ")";
-
-                // Buksan ang modal
                 medModalOverlay.classList.add("active");
                 if (cancelMedBtn) cancelMedBtn.focus();
             });
@@ -847,7 +801,7 @@
             });
         }
 
-        // Global ESC Key para isara ang kahit anong bukas na modal
+        // Global ESC Key para isara ang modal
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape" || event.keyCode === 27) {
                 if (studentModalOverlay) studentModalOverlay.classList.remove("active");
