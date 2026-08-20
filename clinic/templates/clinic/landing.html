@@ -38,41 +38,48 @@
         }
 
         /* ==========================================
-           [BACKGROUND & THEME LAYERS]
-           ========================================== */
+            [BACKGROUND & THEME LAYERS]
+            ========================================== */
         .bg-building { position: fixed; inset: 0; z-index: -4; background: url("{% static 'clinic/img/building.png' %}") center/cover no-repeat; filter: brightness(45%) contrast(110%); }
-        .bg-layer { position: fixed; inset: 0; z-index: -3; opacity: 0; mix-blend-mode: multiply; }
+        .bg-layer { position: fixed; inset: 0; z-index: -3; opacity: 0; mix-blend-mode: multiply; transition: opacity 0.5s ease-in-out; }
         .bg-layer.active { opacity: 0.35; }
         .bg-morning { background: linear-gradient(135deg, #020617 0%, #0369a1 60%, #38bdf8 100%); }
         .bg-day { background: linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #0284c7 100%); }
         .bg-evening { background: linear-gradient(135deg, #020617 0%, #581c87 50%, #881337 100%); }
         .bg-night { background: linear-gradient(135deg, #020617 0%, #090d16 70%, #1e1b4b 100%); }
         
-        .stars-overlay { position: fixed; inset: 0; z-index: -1; opacity: 0; background-image: radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent), radial-gradient(1.5px 1.5px at 65% 15%, rgba(255,255,255,0.6), transparent), radial-gradient(1.5px 1.5px at 85% 40%, rgba(255,255,255,0.9), transparent); }
+        .stars-overlay { position: fixed; inset: 0; z-index: -1; opacity: 0; background-image: radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent), radial-gradient(1.5px 1.5px at 65% 15%, rgba(255,255,255,0.6), transparent), radial-gradient(1.5px 1.5px at 85% 40%, rgba(255,255,255,0.9), transparent); transition: opacity 0.5s ease-in-out; }
         .stars-overlay.active { opacity: 1; }
 
         /* ==========================================
-           [SECTION 1: LANDING/WELCOME VIEW]
-           ========================================== */
-        .brand-wrapper { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 2; }
+            [SECTION 1: LANDING/WELCOME VIEW]
+            ========================================== */
+        .brand-wrapper { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; z-index: 2; transition: all 0.3s ease; }
         .landing-logo { width: clamp(220px, 40vw, 320px); height: auto; filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5)); }
         .landing-title { font-family: 'Inter', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 4.8vw, 2.6rem); background: linear-gradient(135deg, #ffffff 30%, #38bdf8 70%, #c084fc 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .landing-subtitle { color: #cbd5e1; font-size: clamp(0.9rem, 2vw, 1.1rem); margin-bottom: 1.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
         
         .landing-time-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.15); color: #f1f5f9; font-size: 0.88rem; font-weight: 600; padding: 10px 24px; border-radius: 999px; margin-bottom: 2rem; backdrop-filter: blur(16px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        .btn-landing-login { background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 44px; border-radius: 14px; font-weight: 800; font-size: 1.05rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5); }
+        .btn-landing-login { background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 100%); color: #ffffff; padding: 14px 44px; border-radius: 14px; font-weight: 800; font-size: 1.05rem; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 12px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5); transition: transform 0.2s, box-shadow 0.2s; }
+        .btn-landing-login:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(56, 189, 248, 0.4); }
 
         /* ==========================================
-           [SECTION 2: LOGIN CONTAINER & FORM]
-           ========================================== */
-        .login-wrapper { display: none; width: 100%; max-width: 440px; position: relative; z-index: 2; }
+            [SECTION 2: LOGIN CONTAINER & FORM]
+            ========================================== */
+        .login-wrapper { display: none; width: 100%; max-width: 440px; position: relative; z-index: 2; animation: fadeIn 0.3s ease-in-out; }
         
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Body Toggle Switch Classes */
         body.show-login .brand-wrapper { display: none !important; }
         body.show-login .login-wrapper { display: block !important; }
 
         .glass-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 28px; padding: 2.5rem 2rem; box-shadow: 0 30px 60px rgba(0,0,0,0.8); position: relative; }
-        .btn-close-login { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 36px; height: 36px; border-radius: 50%; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-close-login { position: absolute; top: 18px; right: 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); width: 36px; height: 36px; border-radius: 50%; color: #cbd5e1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .btn-close-login:hover { background: rgba(255,255,255,0.15); color: #fff; }
         
         .header-icon-circle { width: 80px; height: 80px; background: rgba(15, 23, 42, 0.8); border: 2px solid rgba(56, 189, 248, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; padding: 4px; }
         .custom-header-icon { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
@@ -85,10 +92,13 @@
         .custom-input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         
         .password-toggle-btn { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; }
-        .btn-submit-main { width: 100%; background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%); color: #fff; border: none; padding: 13px; border-radius: 12px; font-weight: 800; margin-top: 1rem; cursor: pointer; }
+        .password-toggle-btn:hover { color: #cbd5e1; }
+        
+        .btn-submit-main { width: 100%; background: linear-gradient(135deg, #0284c7 0%, #6366f1 100%); color: #fff; border: none; padding: 13px; border-radius: 12px; font-weight: 800; margin-top: 1rem; cursor: pointer; transition: opacity 0.2s; }
+        .btn-submit-main:hover { opacity: 0.9; }
     </style>
 </head>
-<body class="{% if form.errors %}show-login{% endif %}">
+<body class="{% if form.errors or request.method == 'POST' %}show-login{% endif %}">
 
     <!-- STATIC BACKGROUND GRAPHICS -->
     <div class="bg-building"></div>
@@ -122,7 +132,7 @@
        ========================================== -->
     <main class="login-wrapper">
         <div class="glass-card">
-            <button class="btn-close-login" onclick="closeLogin()"><i class="bi bi-x-lg"></i></button>
+            <button type="button" class="btn-close-login" onclick="closeLogin()"><i class="bi bi-x-lg"></i></button>
             
             <div class="header-icon-circle">
                 <img src="{% static 'clinic/img/tp.png' %}" alt="ICE Logo" class="custom-header-icon">
@@ -138,13 +148,13 @@
             </div>
             {% endif %}
 
-            <!-- Login Form (Naka-ayos na may iisang CSRF Token lamang) -->
+            <!-- Login Form -->
             <form method="post" action="{% url 'landing' %}">
                 {% csrf_token %}
                 
                 <div class="mb-3 text-start">
                     <label class="input-group-label"><i class="bi bi-person-fill text-info me-1"></i> USERNAME O EMAIL</label>
-                    <input type="text" name="username" class="custom-input" placeholder="Enter username" required autocomplete="username">
+                    <input type="text" name="username" class="custom-input" placeholder="Enter username" required autocomplete="username" value="{{ form.username.value|default:'' }}">
                 </div>
 
                 <div class="mb-3 text-start">
@@ -156,7 +166,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-3" style="font-size: 0.8rem; color: #cbd5e1;">
-                    <label class="d-flex align-items-center gap-1 cursor-pointer">
+                    <label class="d-flex align-items-center gap-1 cursor-pointer" style="cursor: pointer;">
                         <input type="checkbox" name="remember_me"> Remember me
                     </label>
                     <a href="{% url 'forgot_password_request' %}" class="text-decoration-none text-info fw-semibold">Forgot Password?</a>
