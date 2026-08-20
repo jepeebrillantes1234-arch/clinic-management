@@ -244,7 +244,7 @@
 <section class="nurse-management">
 
     <!-- 1. DASHBOARD-STYLE HERO HEADER -->
-    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 ">
         <div>
             <div class="hero-badge">
                 <i class="bi bi-heart-pulse-fill"></i> International Colleges for Excellence, Inc. • Health Portal
@@ -264,7 +264,7 @@
 
     <!-- 3. NURSE CARDS GRID -->
     {% if nurses %}
-    <div class="row g-3 animate__animated animate__fadeIn">
+    <div class="row g-3 ">
         {% for nurse in nurses %}
         <div class="col-sm-6 col-md-4 col-lg-3">
             <a href="{% url 'nurse_views' nurse.pk %}" class="nurse-card">
@@ -292,7 +292,7 @@
 
     <!-- 4. EMPTY STATE -->
     {% else %}
-    <div class="cms-card empty-state-card animate__animated animate__fadeIn">
+    <div class="cms-card empty-state-card ">
         <div class="empty-icon-wrapper">
             <img src="{% static 'clinic/img/cliniclogo.png' %}" alt="Clinic Logo" class="img-fluid" style="max-height: 500px;">
         </div>
