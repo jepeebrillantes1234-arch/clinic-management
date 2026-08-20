@@ -1,0 +1,333 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Add Medicine Record - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* ==========================================================================
+       1. GLOBAL THEME VARIABLES & BASE STYLES
+       ========================================================================== */
+    :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="light"] {
+        --card-bg: #FFFFFF;
+        --card-border: #E2E8F0;
+        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --input-bg: #FFFFFF;
+        --input-border: #CBD5E1;
+        --accent-primary: #2563EB;
+        --accent-primary-hover: #1D4ED8;
+        --btn-cancel-bg: #F1F5F9;
+        --btn-cancel-text: #475569;
+        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    [data-bs-theme="dark"] {
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        --text-main: #F8FAFC;
+        --text-muted: #94A3B8;
+        --input-bg: rgba(15, 23, 42, 0.6);
+        --input-border: rgba(255, 255, 255, 0.12);
+        --accent-primary: #38BDF8;
+        --accent-primary-hover: #0284C7;
+        --btn-cancel-bg: rgba(255, 255, 255, 0.08);
+        --btn-cancel-text: #CBD5E1;
+        --hero-bg: rgba(30, 41, 59, 0.7);
+    }
+
+    .cms-container {
+        font-family: var(--font-primary);
+        color: var(--text-main);
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Glassmorphism Card Style */
+    .cms-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: var(--transition-smooth);
+    }
+
+    /* ==========================================================================
+       2. DASHBOARD-STYLE HERO HEADER
+       ========================================================================== */
+    .dashboard-hero-card {
+        background: var(--hero-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem 1.75rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--accent-primary);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+    }
+
+    .hero-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-main);
+        margin: 0 0 0.25rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    /* ==========================================================================
+       3. FORM CONTROLS & LAYOUT
+       ========================================================================== */
+    .cms-label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .cms-input, .cms-select, .cms-textarea {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1rem;
+        font-size: 0.875rem;
+        color: var(--text-main);
+        transition: var(--transition-smooth);
+        outline: none;
+    }
+
+    .cms-input:focus, .cms-select:focus, .cms-textarea:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .stock-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-top: 6px;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-primary);
+        border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    /* Buttons */
+    .button-area {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .btn-cms-primary {
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: var(--transition-smooth);
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .btn-cms-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-cms-cancel {
+        background: var(--btn-cancel-bg);
+        color: var(--btn-cancel-text) !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-cms-cancel:hover {
+        background: rgba(100, 116, 139, 0.15);
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 576px) {
+        .button-area {
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+
+        .button-area .btn-cms-primary,
+        .button-area .btn-cms-cancel {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="cms-container">
+
+    <!-- 1. HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+        <div>
+            <div class="hero-badge">
+                <i class="bi bi-person-fill"></i> Student Health Record
+            </div>
+            <h1 class="hero-title">Add Medicine Record</h1>
+            <p class="hero-subtitle">
+                Para kay <strong class="text-primary">{{ student.full_name }}</strong> ({{ student.student_id }})
+            </p>
+        </div>
+        <div class="d-none d-sm-block">
+            <a href="{% url 'student_detail' student.pk %}" class="btn-cms-cancel">
+                <i class="bi bi-arrow-left"></i> Bumalik
+            </a>
+        </div>
+    </div>
+
+    <!-- Django Alert Messages -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-danger border-0 shadow-sm rounded-3 mb-4 animate__animated animate__shakeX">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- 2. FORM PANEL -->
+    <div class="cms-card p-4 p-md-5 animate__animated animate__fadeIn">
+        <form method="post" id="medicineRecordForm">
+            {% csrf_token %}
+
+            <!-- Medicine Selection -->
+            <div class="mb-4">
+                <label class="cms-label">
+                    <i class="bi bi-capsule-solid text-primary"></i> Medicine <span class="text-danger">*</span>
+                </label>
+                <select name="medicine" id="medicineSelect" class="cms-select" required>
+                    <option value="">-- Piliin ang gamot --</option>
+                    {% for m in medicines %}
+                    <option value="{{ m.pk }}" data-stock="{{ m.quantity_in_stock }}" data-unit="{{ m.unit }}">
+                        {{ m.name }} ({{ m.quantity_in_stock }} {{ m.unit }} natitira)
+                    </option>
+                    {% endfor %}
+                </select>
+                <div id="stockNoteContainer" class="d-none">
+                    <span class="stock-pill">
+                        <i class="bi bi-box-seam"></i> <span id="stockNoteText"></span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-4">
+                <label class="cms-label">
+                    <i class="bi bi-cart-plus-fill text-warning"></i> Quantity <span class="text-danger">*</span>
+                </label>
+                <input type="number" name="quantity" id="quantityInput" class="cms-input" min="1" value="1" required>
+            </div>
+
+            <!-- Prescription / Reason -->
+            <div class="mb-4">
+                <label class="cms-label">
+                    <i class="bi bi-file-earmark-medical-fill text-info"></i> Prescription / Reason
+                </label>
+                <textarea name="prescription" class="cms-textarea" rows="3" placeholder="hal. Headache, Fever, Stomachache..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="button-area">
+                <a href="{% url 'student_detail' student.pk %}" class="btn-cms-cancel">Cancel</a>
+                <button type="submit" class="btn-cms-primary">
+                    <i class="bi bi-check-circle-fill"></i> I-save at Ibawas sa Stock
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<!-- JavaScript Stock Counter Handler -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const medicineSelect = document.getElementById('medicineSelect');
+        const stockNoteContainer = document.getElementById('stockNoteContainer');
+        const stockNoteText = document.getElementById('stockNoteText');
+        const quantityInput = document.getElementById('quantityInput');
+
+        if (medicineSelect) {
+            medicineSelect.addEventListener('change', function () {
+                const selected = this.options[this.selectedIndex];
+                const stock = selected.getAttribute('data-stock');
+                const unit = selected.getAttribute('data-unit');
+
+                if (stock) {
+                    stockNoteText.textContent = `Available stock: ${stock} ${unit}`;
+                    stockNoteContainer.classList.remove('d-none');
+                    quantityInput.max = stock;
+                } else {
+                    stockNoteContainer.classList.add('d-none');
+                    stockNoteText.textContent = '';
+                    quantityInput.removeAttribute('max');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

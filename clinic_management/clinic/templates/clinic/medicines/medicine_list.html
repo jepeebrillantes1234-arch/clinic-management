@@ -1,0 +1,480 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Medicine Inventory - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+    }
+
+    [data-bs-theme="light"] {
+        --card-bg: #FFFFFF;
+        --card-border: #E2E8F0;
+        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --table-header-bg: #F8FAFC;
+        --table-row-hover: #F1F5F9;
+        --input-bg: #FFFFFF;
+        --input-border: #CBD5E1;
+        --accent-primary: #2563EB;
+        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+        
+        --overlay-bg: rgba(15, 23, 42, 0.45);
+        --modal-bg: #ffffff;
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    [data-bs-theme="dark"] {
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        --text-main: #F8FAFC;
+        --text-muted: #94A3B8;
+        --table-header-bg: #0F172A;
+        --table-row-hover: rgba(56, 189, 248, 0.05);
+        --input-bg: rgba(15, 23, 42, 0.6);
+        --input-border: rgba(255, 255, 255, 0.12);
+        --accent-primary: #38BDF8;
+        --hero-bg: rgba(30, 41, 59, 0.7);
+
+        --overlay-bg: rgba(2, 6, 23, 0.7);
+        --modal-bg: #1e293b;
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65);
+    }
+
+    .cms-container {
+        font-family: var(--font-primary);
+        color: var(--text-main);
+    }
+
+    .cms-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(16px);
+    }
+
+    .dashboard-hero-card {
+        background: var(--hero-bg);
+        border: 1px solid var(--card-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem 2rem;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--accent-primary);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 0.35rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .btn-cms-primary {
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .search-input-group {
+        position: relative;
+        width: 100%;
+    }
+
+    .search-input-group .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    .cms-search-input {
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        color: var(--text-main);
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 1rem 0.6rem 2.6rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-cms-filter {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-main) !important;
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+    }
+
+    .cms-table th {
+        background-color: var(--table-header-bg);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .cms-table td {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--card-border);
+        color: var(--text-main);
+        vertical-align: middle;
+        font-size: 0.875rem;
+    }
+
+    .cms-table tbody tr:hover td {
+        background-color: var(--table-row-hover);
+    }
+
+    .med-thumb {
+        width: 44px;
+        height: 44px;
+        object-fit: cover;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--card-border);
+    }
+
+    .med-thumb-placeholder {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--border-radius-sm);
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .badge-success {
+        background: rgba(16, 185, 129, 0.12);
+        color: #10B981;
+    }
+
+    .badge-warning {
+        background: rgba(245, 158, 11, 0.12);
+        color: #F59E0B;
+    }
+
+    .badge-danger {
+        background: rgba(239, 68, 68, 0.12);
+        color: #EF4444;
+    }
+
+    .action-link {
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+
+    .edit-link {
+        color: var(--accent-primary);
+    }
+
+    .delete-trigger-link {
+        color: #EF4444;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* EXACT MATCH CUSTOM DELETE MODAL STYLES (Kapareho ng Student Profile Reference) */
+    .confirm-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100vw; height: 100vh;
+        background-color: var(--overlay-bg);
+        backdrop-filter: blur(4px);
+        display: flex; justify-content: center; align-items: center;
+        padding: 1.25rem; z-index: 9999;
+        opacity: 0; visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .confirm-modal-overlay.active { opacity: 1; visibility: visible; }
+
+    .confirm-modal-box {
+        background: var(--modal-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 24px;
+        width: 100%; max-width: 440px; padding: 2rem;
+        box-shadow: var(--modal-shadow);
+        transform: scale(0.95);
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        text-align: left;
+    }
+    .confirm-modal-overlay.active .confirm-modal-box { transform: scale(1); }
+
+    .warning-icon-badge {
+        width: 48px; height: 48px; border-radius: 50%;
+        background: rgba(239, 68, 68, 0.1);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 1.25rem; color: #EF4444; font-size: 1.4rem;
+    }
+
+    .confirm-modal-title {
+        font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin: 0 0 0.5rem 0;
+    }
+    .confirm-modal-desc {
+        font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 1rem 0;
+    }
+
+    .target-pill-box {
+        display: inline-block;
+        background: var(--table-header-bg);
+        border: 1px solid var(--card-border);
+        color: var(--text-main);
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        margin: 0.25rem 0 1rem 0;
+    }
+
+    .warning-note {
+        color: #EF4444; font-size: 0.8rem; font-weight: 600;
+        display: flex; align-items: flex-start; gap: 6px; margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+
+    .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+    .btn-modal {
+        font-size: 0.85rem; font-weight: 700; padding: 0.55rem 1.2rem; border-radius: 10px;
+        cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-cancel-modal { background-color: var(--table-header-bg); border-color: var(--card-border); color: var(--text-muted); }
+    .btn-cancel-modal:hover { background-color: var(--card-border); color: var(--text-main); }
+    
+    .btn-delete-modal { 
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); 
+        color: #FFFFFF !important; 
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .btn-delete-modal:hover { opacity: 0.9; }
+</style>
+
+<div class="cms-container">
+
+    <!-- HERO HEADER -->
+    <div
+        class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+        <div>
+            <div class="hero-badge"><i class="bi bi-heart-pulse-fill"></i> Health Portal</div>
+            <h1 class="hero-title">Medicine Inventory</h1>
+            <p class="hero-subtitle">Monitor stock levels, expiration dates, and medical supply distribution.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="{% url 'medicine_create' %}" class="btn-cms-primary"><i class="bi bi-plus-lg"></i> Add Medicine</a>
+            
+            <div class="logo-box d-none d-sm-flex">
+                <img src="{% static 'clinic/img/medicine.png' %}" alt="Clinic Logo" class="img-fluid" style="max-height: 50px;">
+            </div>
+        </div>
+    </div>
+    
+    <!-- SEARCH BAR -->
+    <div class="cms-card p-3 mb-4 animate__animated animate__fadeIn">
+        <form method="get" class="row g-2 align-items-center m-0">
+            <div class="col-12 col-md-8">
+                <div class="search-input-group">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" name="q" class="form-control cms-search-input" placeholder="Search medicine..."
+                        value="{{ query|default:'' }}">
+                </div>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn-cms-primary flex-grow-1"><i class="bi bi-search"></i> Search</button>
+                {% if query %}<a href="{% url 'medicine_list' %}" class="btn-cms-filter">Clear</a>{% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- TABLE LIST -->
+    <div class="cms-card table-container animate__animated animate__fadeIn">
+        <div class="table-responsive">
+            <table class="table cms-table align-middle">
+                <thead>
+                    <tr>
+                        <th class="text-center">Image</th>
+                        <th>Medicine Name</th>
+                        <th>Category</th>
+                        <th>Stock</th>
+                        <th>Expiration Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in medicines %}
+                    <tr>
+                        <td class="text-center">
+                            {% if m.image %}
+                            <img src="{{ m.image.url }}" alt="{{ m.name }}" class="med-thumb">
+                            {% else %}
+                            <div class="med-thumb-placeholder mx-auto"><i class="bi bi-capsule"></i></div>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold">{{ m.name }}</td>
+                        <td class="text-muted">{{ m.category|default:"—" }}</td>
+                        <td class="fw-semibold">{{ m.quantity_in_stock }} {{ m.unit }}</td>
+                        <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"—" }}</td>
+                        <td>
+                            {% if m.is_low_stock %}
+                            <span class="badge-status badge-danger"><i class="bi bi-exclamation-circle-fill"></i> Low
+                                Stock</span>
+                            {% elif m.is_expiring_soon %}
+                            <span class="badge-status badge-warning"><i class="bi bi-hourglass-split"></i> Expiring
+                                Soon</span>
+                            {% else %}
+                            <span class="badge-status badge-success"><i class="bi bi-check-circle-fill"></i>
+                                Available</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1 align-items-center">
+                                <a href="{% url 'medicine_edit' m.pk %}" class="action-link edit-link"><i
+                                        class="bi bi-pencil-square"></i> Edit</a>
+                                <!-- Pindutin ito para lumabas ang center delete modal -->
+                                <button type="button" class="action-link delete-trigger-link"
+                                    onclick="showDeleteModal('{{ m.pk }}', '{{ m.name|escapejs }}')">
+                                    <i class="bi bi-trash3 me-1"></i>Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="bi bi-inbox display-5 text-muted d-block mb-2"></i>
+                            <h6 class="fw-bold">No Medicines Found</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- EXACT MATCH CUSTOM CONFIRMATION MODAL -->
+<div class="confirm-modal-overlay" id="customConfirmModal" role="dialog" aria-modal="true">
+    <div class="confirm-modal-box">
+        <div class="warning-icon-badge">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h3 class="confirm-modal-title">Delete Medicine Record?</h3>
+        
+        <div class="confirm-modal-desc mb-0">
+            This action cannot be undone. You are about to permanently remove:
+        </div>
+        
+        <div>
+            <div class="target-pill-box" id="modalMedName">Medicine Name</div>
+        </div>
+
+        <div class="warning-note">
+            <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+            <span>All associated records will also be deleted from the database.</span>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-modal btn-cancel-modal" onclick="hideDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="POST" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-modal btn-delete-modal">
+                    <i class="bi bi-trash-fill"></i> Yes, Delete Medicine
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para sa pag-control ng Modal -->
+<script>
+    const customConfirmModal = document.getElementById('customConfirmModal');
+    const modalMedName = document.getElementById('modalMedName');
+    const deleteForm = document.getElementById('deleteForm');
+
+    function showDeleteModal(pk, name) {
+        modalMedName.textContent = name;
+        deleteForm.action = `/medicines/${pk}/delete/`;
+        customConfirmModal.classList.add('active');
+    }
+
+    function hideDeleteModal() {
+        customConfirmModal.classList.remove('active');
+    }
+
+    // Isara ang modal kapag pinindot ang Escape key o click sa labas ng box
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            hideDeleteModal();
+        }
+    });
+
+    customConfirmModal.addEventListener('click', function(e) {
+        if (e.target === customConfirmModal) {
+            hideDeleteModal();
+        }
+    });
+</script>
+
+{% endblock %}

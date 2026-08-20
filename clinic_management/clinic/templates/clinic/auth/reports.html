@@ -1,0 +1,537 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Reports & Analytics - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    /* ==========================================================================
+        1. GLOBAL THEME VARIABLES & BASE STYLES (NO ANIMATION)
+        ========================================================================== */
+    :root {
+        --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        
+        --reports-bg: rgba(255, 255, 255, 0.9);
+        --reports-border: rgba(226, 232, 240, 0.8);
+        --text-primary: #0F172A;
+        --text-secondary: #64748B;
+        --row-border: #F1F5F9;
+        --table-header-bg: #F8FAFC;
+        --accent-blue: #0284C7;
+        --hero-bg: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    body.dark-mode,
+    [data-bs-theme="dark"],
+    .dark-theme {
+        --reports-bg: rgba(30, 41, 59, 0.75);
+        --reports-border: rgba(255, 255, 255, 0.1);
+        --text-primary: #F8FAFC;
+        --text-secondary: #94A3B8;
+        --row-border: rgba(255, 255, 255, 0.06);
+        --table-header-bg: #0F172A;
+        --accent-blue: #38BDF8;
+        --hero-bg: rgba(30, 41, 59, 0.85);
+        --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    body {
+        font-family: var(--font-primary) !important;
+        color: var(--text-primary);
+    }
+
+    /* Static Ambient Glow (No movement) */
+    .ambient-glow {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(100px);
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.35;
+    }
+
+    .glow-1 {
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%);
+        top: 5%; left: 25%;
+    }
+
+    /* ===== MAIN CONTAINER ===== */
+    .cms-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.25rem 0.5rem 2rem 0.5rem;
+        box-sizing: border-box;
+    }
+
+    /* ==========================================================================
+        2. DASHBOARD-STYLE HERO HEADER (STATIC)
+        ========================================================================== */
+    .dashboard-hero-card {
+        background: var(--hero-bg) !important;
+        border: 1px solid var(--reports-border) !important;
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #0284c7, #8b5cf6);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(2, 132, 199, 0.12);
+        color: var(--accent-blue);
+        border: 1px solid rgba(2, 132, 199, 0.25);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin: 0 0 0.35rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .btn-cms-action {
+        background: var(--reports-bg);
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        font-size: 0.875rem;
+        border: 1px solid var(--reports-border);
+        border-radius: var(--border-radius-sm);
+        padding: 0.6rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+    }
+
+    /* ==========================================================================
+        3. STAT CARDS GRID (NO HOVER MOVEMENT)
+        ========================================================================== */
+    .report-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .report-stat-card {
+        background: var(--reports-bg);
+        border: 1px solid var(--reports-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.35rem 1.5rem;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .report-stat-card .num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.1;
+    }
+
+    .report-stat-card .label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .icon-teal { background: rgba(15, 118, 110, 0.12); color: #0F766E; }
+    .icon-blue { background: rgba(2, 132, 199, 0.12); color: #0284C7; }
+    .icon-purple { background: rgba(126, 34, 206, 0.12); color: #7E22CE; }
+    .icon-orange { background: rgba(194, 65, 12, 0.12); color: #C2410C; }
+
+    body.dark-mode .icon-teal, [data-bs-theme="dark"] .icon-teal { color: #2DD4BF; }
+    body.dark-mode .icon-blue, [data-bs-theme="dark"] .icon-blue { color: #38BDF8; }
+    body.dark-mode .icon-purple, [data-bs-theme="dark"] .icon-purple { color: #C084FC; }
+    body.dark-mode .icon-orange, [data-bs-theme="dark"] .icon-orange { color: #FB923C; }
+
+    /* ==========================================================================
+        4. CHARTS & PANELS (STATIC)
+        ========================================================================== */
+    .reports-grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-panel {
+        background: var(--reports-bg);
+        border: 1px solid var(--reports-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .chart-container-wrapper {
+        position: relative;
+        width: 100%;
+        height: 250px;
+    }
+
+    .chart-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--row-border);
+    }
+
+    .chart-panel-header h4 {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .badge-soft {
+        background: rgba(100, 116, 139, 0.12);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 999px;
+    }
+
+    .badge-soft.warn { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+    .badge-soft.danger { background: rgba(239, 68, 68, 0.12); color: #EF4444; }
+
+    /* Tables */
+    .alert-table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        background: var(--table-header-bg);
+        font-weight: 700;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--reports-border);
+    }
+
+    .alert-table td {
+        padding: 14px 16px;
+        font-size: 0.875rem;
+        border-bottom: 1px solid var(--row-border);
+        color: var(--text-primary);
+    }
+
+    .empty-alert {
+        text-align: center;
+        padding: 32px 16px;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    /* ==========================================================================
+        5. RESPONSIVE
+        ========================================================================== */
+    @media (max-width: 576px) {
+        .cms-container { padding: 0.5rem; }
+        .dashboard-hero-card { padding: 1.25rem 1.5rem; }
+        .hero-title { font-size: 1.4rem; }
+        .reports-grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="ambient-glow glow-1"></div>
+
+<div class="cms-container">
+
+    <!-- 1. DASHBOARD-STYLE HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <div class="hero-badge">
+                <i class="bi bi-graph-up-arrow"></i> Executive Analytics
+            </div>
+            <h1 class="hero-title">Reports &amp; Analytics</h1>
+            <p class="hero-subtitle">Comprehensive summary of medical requests, inventory distribution, and student records.</p>
+        </div>
+        <div>
+            <button onclick="window.print()" class="btn-cms-action">
+                <i class="bi bi-printer-fill me-1"></i> Print Report
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. STAT SUMMARY CARDS -->
+    <section class="report-grid" aria-label="Summary Cards">
+        <article class="report-stat-card">
+            <div class="meta">
+                <div class="num">{{ total_students }}</div>
+                <div class="label">Total Students</div>
+            </div>
+            <div class="stat-icon icon-teal"><i class="bi bi-people-fill"></i></div>
+        </article>
+
+        <article class="report-stat-card">
+            <div class="meta">
+                <div class="num">{{ total_medicines }}</div>
+                <div class="label">Medicines in Inventory</div>
+            </div>
+            <div class="stat-icon icon-blue"><i class="bi bi-capsule"></i></div>
+        </article>
+
+        <article class="report-stat-card">
+            <div class="meta">
+                <div class="num">{{ total_requests }}</div>
+                <div class="label">Medical Requests</div>
+            </div>
+            <div class="stat-icon icon-purple"><i class="bi bi-journal-medical"></i></div>
+        </article>
+
+        <article class="report-stat-card">
+            <div class="meta">
+                <div class="num">{{ total_dispensed }}</div>
+                <div class="label">Total Units Dispensed</div>
+            </div>
+            <div class="stat-icon icon-orange"><i class="bi bi-prescription2"></i></div>
+        </article>
+    </section>
+
+    <!-- 3. STUDENT ANALYTICS CHARTS -->
+    <section class="reports-grid-2" aria-label="Students Charts">
+        <article class="chart-panel">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-bar-chart-fill text-primary"></i> Students by Course</h4>
+                <span class="badge-soft">{{ total_students }} Total</span>
+            </div>
+            <div class="chart-container-wrapper">
+                <canvas id="courseChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-pie-chart-fill text-primary"></i> Students by Year Level</h4>
+            </div>
+            <div class="chart-container-wrapper">
+                <canvas id="yearChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <!-- 4. REQUEST & MEDICINE ANALYTICS -->
+    <section class="reports-grid-2" aria-label="Requests and Medicine Charts">
+        <article class="chart-panel">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-journal-medical text-primary"></i> Medical Requests by Status</h4>
+                <span class="badge-soft">{{ total_requests }} Total</span>
+            </div>
+            <div class="chart-container-wrapper">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-panel">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-capsule text-primary"></i> Top Dispensed Medicines</h4>
+                <span class="badge-soft">{{ total_dispensed }} Units</span>
+            </div>
+            <div class="chart-container-wrapper">
+                <canvas id="topMedicineChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <!-- 5. INVENTORY ALERTS -->
+    <section class="reports-grid-2" aria-label="Inventory Alerts">
+        <article class="chart-panel mb-0">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-exclamation-triangle-fill text-danger"></i> Low Stock Medicines</h4>
+                <span class="badge-soft danger">{{ low_stock_count }} Item{{ low_stock_count|pluralize }}</span>
+            </div>
+            {% if low_stock_medicines %}
+            <div class="table-responsive">
+                <table class="table alert-table m-0">
+                    <thead>
+                        <tr><th>Medicine</th><th>Stock</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in low_stock_medicines %}
+                        <tr>
+                            <td class="fw-semibold">{{ m.name }}</td>
+                            <td>{{ m.quantity_in_stock }} {{ m.unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-alert"><i class="bi bi-check-circle d-block fs-3 mb-2 text-success"></i> No low stock items reported.</div>
+            {% endif %}
+        </article>
+
+        <article class="chart-panel mb-0">
+            <div class="chart-panel-header">
+                <h4><i class="bi bi-hourglass-split text-warning"></i> Expiring Soon</h4>
+                <span class="badge-soft warn">{{ expiring_count }} Item{{ expiring_count|pluralize }}</span>
+            </div>
+            {% if expiring_medicines %}
+            <div class="table-responsive">
+                <table class="table alert-table m-0">
+                    <thead>
+                        <tr><th>Medicine</th><th>Expiration</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in expiring_medicines %}
+                        <tr>
+                            <td class="fw-semibold">{{ m.name }}</td>
+                            <td>{{ m.expiration_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-alert"><i class="bi bi-check-circle d-block fs-3 mb-2 text-success"></i> No expiring medicines reported.</div>
+            {% endif %}
+        </article>
+    </section>
+</div>
+
+<!-- JSON Script tags for backend data parsing -->
+{{ course_chart_data|json_script:"courseChartData" }}
+{{ year_chart_data|json_script:"yearChartData" }}
+{{ status_chart_data|json_script:"statusChartData" }}
+{{ top_medicine_chart_data|json_script:"topMedicineChartData" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const courseInfo = JSON.parse(document.getElementById('courseChartData').textContent);
+        const yearInfo = JSON.parse(document.getElementById('yearChartData').textContent);
+        const statusInfo = JSON.parse(document.getElementById('statusChartData').textContent);
+        const topMedicineInfo = JSON.parse(document.getElementById('topMedicineChartData').textContent);
+
+        const isDarkMode = document.body.classList.contains('dark-mode') || document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9';
+        const textColor = isDarkMode ? '#94A3B8' : '#64748B';
+
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1, color: textColor }, grid: { color: gridColor } },
+                x: { ticks: { color: textColor }, grid: { display: false } }
+            }
+        };
+
+        // 1. Course Chart
+        new Chart(document.getElementById('courseChart'), {
+            type: 'bar',
+            data: {
+                labels: courseInfo.labels,
+                datasets: [{ label: 'Students', data: courseInfo.data, backgroundColor: '#0284C7', borderRadius: 8, maxBarThickness: 40 }]
+            },
+            options: chartOptions
+        });
+
+        // 2. Year Level Chart
+        new Chart(document.getElementById('yearChart'), {
+            type: 'doughnut',
+            data: {
+                labels: yearInfo.labels,
+                datasets: [{
+                    data: yearInfo.data,
+                    backgroundColor: ['#0284C7', '#06B6D4', '#0F766E', '#EA580C', '#9333EA', '#EAB308'],
+                    borderWidth: 2,
+                    borderColor: isDarkMode ? '#1E293B' : '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 }, color: textColor } } }
+            }
+        });
+
+        // 3. Status Chart
+        new Chart(document.getElementById('statusChart'), {
+            type: 'bar',
+            data: {
+                labels: statusInfo.labels,
+                datasets: [{ label: 'Requests', data: statusInfo.data, backgroundColor: '#38BDF8', borderRadius: 8, maxBarThickness: 28 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1, color: textColor }, grid: { color: gridColor } },
+                    y: { ticks: { color: textColor }, grid: { display: false } }
+                }
+            }
+        });
+
+        // 4. Top Medicine Chart
+        new Chart(document.getElementById('topMedicineChart'), {
+            type: 'bar',
+            data: {
+                labels: topMedicineInfo.labels.length ? topMedicineInfo.labels : ['No Data'],
+                datasets: [{
+                    label: 'Units Dispensed',
+                    data: topMedicineInfo.data.length ? topMedicineInfo.data : [0],
+                    backgroundColor: '#0D9488',
+                    borderRadius: 8,
+                    maxBarThickness: 36
+                }]
+            },
+            options: chartOptions
+        });
+    });
+</script>
+{% endblock %}

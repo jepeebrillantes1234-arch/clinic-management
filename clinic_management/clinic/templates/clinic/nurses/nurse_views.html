@@ -1,0 +1,516 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}{{ nurse.full_name }} - Profile{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    /* ==========================================================================
+       1. GLOBAL THEME VARIABLES & BASE STYLES FOR PROFILE & MODAL
+       ========================================================================== */
+    :root {
+        --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-modal: 20px;
+        --border-radius-btn: 10px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        
+        --profile-bg: rgba(255, 255, 255, 0.92);
+        --profile-border: rgba(226, 232, 240, 0.8);
+        --text-primary: #0F172A;
+        --text-secondary: #64748B;
+        --info-bg: rgba(248, 250, 252, 0.8);
+        --info-border: #E2E8F0;
+        --banner-bg: linear-gradient(135deg, #0F3569 0%, #1e293b 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        --avatar-border: #FFFFFF;
+
+        /* Modal Theme Variables */
+        --overlay-bg: rgba(15, 23, 42, 0.45);
+        --modal-bg: rgba(255, 255, 255, 0.98);
+        --modal-border: rgba(226, 232, 240, 0.9);
+        --highlight-bg: #F1F5F9;
+        --highlight-text: #0F172A;
+        --cancel-btn-bg: #FFFFFF;
+        --cancel-btn-border: #E2E8F0;
+        --cancel-btn-text: #475569;
+        --cancel-btn-hover: #F8FAFC;
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    body.dark-mode,
+    [data-bs-theme="dark"],
+    .dark-theme {
+        --profile-bg: rgba(30, 41, 59, 0.85);
+        --profile-border: rgba(255, 255, 255, 0.1);
+        --text-primary: #F8FAFC;
+        --text-secondary: #94A3B8;
+        --info-bg: rgba(15, 23, 42, 0.6);
+        --info-border: rgba(255, 255, 255, 0.08);
+        --banner-bg: linear-gradient(135deg, #0F2B52 0%, #0F172A 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        --avatar-border: #1E293B;
+
+        /* Dark Modal Theme */
+        --overlay-bg: rgba(2, 6, 23, 0.7);
+        --modal-bg: rgba(30, 41, 59, 0.98);
+        --modal-border: rgba(255, 255, 255, 0.12);
+        --highlight-bg: rgba(15, 23, 42, 0.6);
+        --highlight-text: #38BDF8;
+        --cancel-btn-bg: rgba(15, 23, 42, 0.5);
+        --cancel-btn-border: rgba(255, 255, 255, 0.12);
+        --cancel-btn-text: #CBD5E1;
+        --cancel-btn-hover: rgba(30, 41, 59, 0.8);
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    .profile-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 1.5rem auto;
+        padding: 0 0.75rem;
+        box-sizing: border-box;
+        font-family: var(--font-primary);
+    }
+
+    .profile-card {
+        background: var(--profile-bg) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--profile-border) !important;
+        border-radius: 18px;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .profile-header-bg {
+        background: var(--banner-bg);
+        height: 110px;
+        position: relative;
+    }
+
+    .profile-avatar-wrapper {
+        margin-top: -55px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .profile-img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--avatar-border);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    }
+
+    .profile-avatar-placeholder {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0284c7 0%, #0F3569 100%);
+        color: #ffffff;
+        font-size: 2.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid var(--avatar-border);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        margin: 0 auto;
+    }
+
+    .profile-name {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+    }
+
+    .info-list {
+        background: var(--info-bg);
+        border-radius: 14px;
+        border: 1px solid var(--info-border);
+        overflow: hidden;
+    }
+
+    .info-item {
+        padding: 0.9rem 1.25rem;
+        border-bottom: 1px solid var(--info-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .info-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.925rem;
+        word-break: break-word;
+    }
+
+    .btn-edit-nurse {
+        background-color: #0F3569;
+        color: #ffffff !important;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 0.65rem 1.25rem;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-edit-nurse:hover {
+        background-color: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(15, 53, 105, 0.25);
+    }
+
+    /* Modal Backdrop Overlay (Nakatago default, lalabas lang pag-click) */
+    .confirm-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: var(--overlay-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: none; /* Nakatago muna */
+        justify-content: center;
+        align-items: center;
+        padding: 1.25rem;
+        z-index: 99999;
+    }
+
+    .confirm-modal-overlay.active {
+        display: flex;
+        animation: fadeInOverlay 0.25s ease-out forwards;
+    }
+
+    /* Modal Box Wrapper */
+    .confirm-modal-box {
+        background: var(--modal-bg);
+        border: 1px solid var(--modal-border);
+        border-radius: var(--border-radius-modal);
+        width: 100%;
+        max-width: 460px;
+        padding: 2rem;
+        box-shadow: var(--modal-shadow);
+        animation: scaleUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        position: relative;
+        font-family: var(--font-primary);
+    }
+
+    .warning-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        color: #EF4444;
+        font-size: 1.65rem;
+    }
+
+    .confirm-modal-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .confirm-modal-text {
+        font-size: 0.925rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin: 0 0 1.5rem 0;
+    }
+
+    .object-highlight {
+        color: var(--highlight-text);
+        font-weight: 700;
+        background-color: var(--highlight-bg);
+        padding: 4px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        margin: 6px 0;
+        border: 1px solid var(--modal-border);
+        word-break: break-word;
+    }
+
+    .warning-subtext {
+        color: #EF4444;
+        font-size: 0.825rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        margin: 0;
+    }
+
+    .btn-modal {
+        font-size: 0.875rem;
+        font-weight: 700;
+        padding: 0.65rem 1.25rem;
+        border-radius: var(--border-radius-btn);
+        text-decoration: none !important;
+        transition: var(--transition-smooth);
+        border: 1px solid transparent;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        outline: none;
+    }
+
+    .btn-cancel {
+        background-color: var(--cancel-btn-bg);
+        border-color: var(--cancel-btn-border);
+        color: var(--cancel-btn-text);
+    }
+
+    .btn-cancel:hover {
+        background-color: var(--cancel-btn-hover);
+        color: var(--text-primary);
+        border-color: rgba(203, 213, 225, 0.8);
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.45);
+        transform: translateY(-1px);
+    }
+
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes scaleUpModal {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    @media (max-width: 576px) {
+        .profile-container { margin: 0.75rem auto; padding: 0 0.25rem; }
+        .profile-header-bg { height: 90px; padding: 0 1rem; }
+        .profile-img, .profile-avatar-placeholder { width: 88px; height: 88px; }
+        .profile-avatar-wrapper { margin-top: -44px; }
+        .card-body { padding: 1.25rem !important; }
+        .profile-name { font-size: 1.25rem; }
+        .info-item { flex-direction: column; align-items: flex-start; gap: 4px; padding: 0.75rem 1rem; }
+        .action-buttons-group { flex-direction: column; }
+        .btn-edit-nurse, .btn-delete-nurse { width: 100%; }
+        
+        .confirm-modal-box { padding: 1.5rem; border-radius: 16px; }
+        .modal-actions { flex-direction: column-reverse; width: 100%; }
+        .btn-modal { width: 100%; }
+    }
+</style>
+
+<div class="profile-container animate__animated animate__fadeIn">
+    <!-- Main Card -->
+    <div class="profile-card">
+        <!-- Header Banner -->
+        <div class="profile-header-bg d-flex align-items-center justify-content-between px-4">
+            <h4 class="text-white fw-bold m-0 fs-5">
+                <i class="bi bi-person-badge me-2"></i>Nurse Profile
+            </h4>
+            <span class="badge bg-light text-dark fw-semibold">ICE Clinic</span>
+        </div>
+
+        <div class="card-body p-4 text-center">
+            <!-- Avatar Section -->
+            <div class="profile-avatar-wrapper mb-3">
+                {% if nurse.photo %}
+                    <img src="{{ nurse.photo.url }}" alt="{{ nurse.full_name }}" class="profile-img">
+                {% else %}
+                    <div class="profile-avatar-placeholder">
+                        {{ nurse.full_name|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Name and Title -->
+            <h3 class="fw-bold profile-name mb-1">{{ nurse.full_name }}</h3>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-semibold mb-4">
+                <i class="bi bi-heart-pulse-fill me-1"></i>{{ nurse.position|default:"Clinic Nurse" }}
+            </span>
+
+            <!-- Detailed Information Box -->
+            <div class="info-list text-start mb-4 shadow-sm">
+                <div class="info-item">
+                    <span class="info-label"><i class="bi bi-telephone text-primary"></i> Contact Number</span>
+                    <span class="info-value">{{ nurse.contact_number|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="bi bi-envelope text-primary"></i> Email Address</span>
+                    <span class="info-value">{{ nurse.email|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="bi bi-clock-history text-primary"></i> Duty Schedule</span>
+                    <span class="info-value">{{ nurse.schedule|default:"—" }}</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-wrap gap-2 justify-content-center action-buttons-group">
+                <a href="{% url 'nurse_edit' nurse.pk %}" class="btn btn-edit-nurse flex-grow-1 d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-pencil-square"></i> Edit Profile
+                </a>
+                
+                <!-- Delete Button na magti-trigger sa custom overlay modal sa ibaba -->
+                <button type="button" class="btn btn-outline-danger btn-delete-nurse fw-semibold flex-grow-1 d-flex align-items-center justify-content-center gap-2" id="openModalBtn">
+                    <i class="bi bi-trash3"></i> Delete
+                </button>
+            </div>
+
+            <!-- Back Link -->
+            <div class="mt-4">
+                <a href="{% url 'nurse_list' %}" class="text-decoration-none text-secondary small fw-semibold d-inline-flex align-items-center gap-1">
+                    <i class="bi bi-arrow-left"></i> Back to Nurses List
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- CUSTOM DELETE POPUP MODAL (Nasa loob na mismo ng pahina) -->
+<!-- ========================================== -->
+<div class="confirm-modal-overlay" id="confirmModalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="confirm-modal-box">
+        
+        <!-- Soft Red Circular Warning Icon -->
+        <div class="warning-icon-wrapper">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <!-- Title & Information -->
+        <h3 class="confirm-modal-title" id="modalTitle">Delete Record?</h3>
+        
+        <div class="confirm-modal-text">
+            This action cannot be undone. You are about to permanently remove:
+            <br>
+            <span class="object-highlight">{{ nurse.full_name }}</span>
+            
+            <div class="warning-subtext">
+                <i class="bi bi-info-circle-fill"></i>
+                The selected record will be permanently deleted from the database.
+            </div>
+        </div>
+
+        <!-- Backend Form Action -->
+        <form method="post" action="{% url 'nurse_delete' nurse.pk %}" class="modal-actions" id="deleteConfirmForm">
+            {% csrf_token %}
+
+            <button type="button" class="btn-modal btn-cancel" id="cancelBtn">
+                Cancel
+            </button>
+
+            <button type="submit" class="btn-modal btn-delete" id="submitDeleteBtn">
+                <i class="bi bi-trash3-fill" id="btnIcon"></i>
+                <span id="btnText">Yes, Delete Record</span>
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<!-- JavaScript para patakbuhin ang Modal nang hindi lumilipat ng page -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const openModalBtn = document.getElementById("openModalBtn");
+        const modalOverlay = document.getElementById("confirmModalOverlay");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const deleteForm = document.getElementById("deleteConfirmForm");
+        const submitBtn = document.getElementById("submitDeleteBtn");
+        const btnIcon = document.getElementById("btnIcon");
+        const btnText = document.getElementById("btnText");
+
+        // Buksan ang modal pag-click ng Delete button sa profile card
+        if (openModalBtn) {
+            openModalBtn.addEventListener("click", function() {
+                modalOverlay.classList.add("active");
+                if (cancelBtn) cancelBtn.focus();
+            });
+        }
+
+        // Isara ang modal pag-click ng Cancel button
+        if (cancelBtn) {
+            cancelBtn.addEventListener("click", function() {
+                modalOverlay.classList.remove("active");
+            });
+        }
+
+        // Isara din kapag pinindot ang background overlay sa labas ng kahon
+        if (modalOverlay) {
+            modalOverlay.addEventListener("click", function(e) {
+                if (e.target === modalOverlay) {
+                    modalOverlay.classList.remove("active");
+                }
+            });
+        }
+
+        // Loading state kapag tinuloy ang pag-delete
+        if (deleteForm) {
+            deleteForm.addEventListener("submit", function() {
+                submitBtn.disabled = true;
+                btnIcon.className = "spinner-border spinner-border-sm";
+                btnText.textContent = "Deleting...";
+            });
+        }
+
+        // ESC Key para isara ang modal
+        document.addEventListener("keydown", function(event) {
+            if (event.key === "Escape" || event.keyCode === 27) {
+                if (modalOverlay) {
+                    modalOverlay.classList.remove("active");
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

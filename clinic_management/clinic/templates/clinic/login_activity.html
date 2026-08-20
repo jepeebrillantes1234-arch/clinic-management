@@ -1,0 +1,47 @@
+{% extends "clinic/base.html" %}
+{% block title %}Login Activity{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+<div class="top-blue-banner d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn"
+     style="background-color: #0F3569; color: #ffffff; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history fs-4"></i>
+        <div>
+            <h2 style="font-size: 1.35rem; font-weight: 700; margin: 0; color: #fff;">LOGIN ACTIVITY</h2>
+            <p style="font-size: 0.85rem; opacity: 0.85; margin: 3px 0 0 0;">Listahan ng lahat ng nag-login sa system (admin lang makakakita nito)</p>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive" style="background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+    <table class="table align-middle m-0">
+        <thead>
+            <tr style="background: #f8fafc;">
+                <th class="px-3 py-3">User</th>
+                <th class="px-3 py-3">Role</th>
+                <th class="px-3 py-3">Petsa &amp; Oras</th>
+                <th class="px-3 py-3">IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %}
+            <tr>
+                <td class="px-3 py-2 fw-bold">{{ activity.user.username }}</td>
+                <td class="px-3 py-2">
+                    <span class="badge bg-light text-dark border text-capitalize">
+                        {{ activity.user.profile.role|default:"—" }}
+                    </span>
+                </td>
+                <td class="px-3 py-2">{{ activity.timestamp|date:"M d, Y - g:i A" }}</td>
+                <td class="px-3 py-2 text-muted">{{ activity.ip_address|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-5 text-muted">Wala pang naitalang login activity.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

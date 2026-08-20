@@ -1,0 +1,680 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- Google Font, Animate.css, Chart.js & Bootstrap Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    /* =========================================================
+        1. DEFAULT LIGHT MODE
+        ========================================================= */
+    :root {
+        --dash-bg: transparent;
+        --card-bg: rgba(255, 255, 255, 0.9);
+        --card-border: rgba(226, 232, 240, 0.8);
+        --card-hover-border: rgba(2, 132, 199, 0.4);
+        
+        --text-main: #0f172a;        /* Dark Navy Text */
+        --text-muted: #64748b;       /* Soft Grey Text */
+        
+        --sub-card-bg: #f8fafc;
+        --hero-bg: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        --grid-color: rgba(226, 232, 240, 0.8);
+
+        --neon-blue: #0284c7;
+        --neon-purple: #8b5cf6;
+        --neon-green: #10b981;
+        --neon-orange: #f97316;
+    }
+
+    /* =========================================================
+        2. DARK MODE OVERRIDES
+        ========================================================= */
+    body.dark-mode, 
+    [data-bs-theme="dark"], 
+    .dark-theme {
+        --card-bg: rgba(30, 41, 59, 0.75) !important;
+        --card-border: rgba(255, 255, 255, 0.1) !important;
+        --card-hover-border: rgba(56, 189, 248, 0.4) !important;
+        
+        --text-main: #f8fafc !important;    /* Light Text */
+        --text-muted: #94a3b8 !important;   /* Soft Grey Text */
+        
+        --sub-card-bg: rgba(15, 23, 42, 0.4) !important;
+        --hero-bg: rgba(30, 41, 59, 0.85) !important;
+        --grid-color: rgba(255, 255, 255, 0.08) !important;
+
+        --neon-blue: #38bdf8 !important;
+        --neon-purple: #a855f7 !important;
+        --neon-green: #34d399 !important;
+        --neon-orange: #fb923c !important;
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: var(--text-main);
+    }
+
+    /* Background Orbs Glow */
+    .ambient-glow {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(100px);
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.35;
+    }
+
+    .glow-1 {
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.3) 0%, transparent 70%);
+        top: 5%; left: 25%;
+    }
+
+    .glow-2 {
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, transparent 70%);
+        bottom: 5%; right: 10%;
+    }
+
+    /* ===== MAIN CONTAINER ===== */
+    .dashboard-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0.25rem 0.5rem;
+        box-sizing: border-box;
+    }
+
+    .dashboard-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        padding-bottom: 2rem;
+        width: 100%;
+    }
+
+    /* ===== ADAPTIVE GLASS CARD ===== */
+    .glass-card {
+        background: var(--card-bg) !important;
+        backdrop-filter: blur(16px) saturate(160%);
+        -webkit-backdrop-filter: blur(16px) saturate(160%);
+        border: 1px solid var(--card-border) !important;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--card-hover-border) !important;
+        box-shadow: 0 14px 30px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== HERO BANNER ===== */
+    .clinic-hero-banner {
+        padding: 1.75rem 2rem;
+        background: var(--hero-bg) !important;
+    }
+
+    .clinic-hero-banner::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(2, 132, 199, 0.1);
+        border: 1px solid rgba(2, 132, 199, 0.2);
+        color: var(--neon-blue);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 999px;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-main) !important;
+    }
+
+    .hero-building-img {
+        width: 95px;
+        height: 95px;
+        object-fit: cover;
+        border-radius: 1.1rem;
+        border: 2px solid var(--neon-blue);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    /* ===== METRICS ===== */
+    .metric-card { 
+        padding: 1.25rem; 
+        height: 100%; 
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted) !important;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-main) !important;
+    }
+
+    .icon-orb {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .orb-blue   { background: rgba(2, 132, 199, 0.12); color: var(--neon-blue); border: 1px solid rgba(2, 132, 199, 0.2); }
+    .orb-green  { background: rgba(16, 185, 129, 0.12); color: var(--neon-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .orb-purple { background: rgba(139, 92, 246, 0.12); color: var(--neon-purple); border: 1px solid rgba(139, 92, 246, 0.2); }
+    .orb-orange { background: rgba(249, 115, 22, 0.12); color: var(--neon-orange); border: 1px solid rgba(249, 115, 22, 0.2); }
+
+    /* ===== CONTENT PANELS ===== */
+    .content-panel { padding: 1.5rem; height: 100%; }
+    .panel-title { font-weight: 800; font-size: 1.05rem; color: var(--text-main) !important; }
+
+    /* ===== QUICK ACTIONS ===== */
+    .action-tile {
+        background: var(--sub-card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 0.9rem;
+        padding: 0.9rem 1rem;
+        text-decoration: none !important;
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        transition: all 0.25s ease;
+        height: 100%;
+    }
+
+    .action-tile:hover {
+        border-color: var(--neon-blue);
+        transform: translateY(-2px);
+    }
+
+    .action-title { font-weight: 700; font-size: 0.88rem; color: var(--text-main) !important; }
+    .action-desc { font-size: 0.73rem; color: var(--text-muted) !important; }
+
+    /* Status Pulse Dot */
+    .pulse-dot-live {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--neon-green);
+        box-shadow: 0 0 8px var(--neon-green);
+        display: inline-block; margin-right: 6px;
+        animation: pulseLive 1.8s infinite;
+    }
+
+    @keyframes pulseLive {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+        70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .activity-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.9rem; flex-shrink: 0;
+    }
+
+    .custom-select-adaptive {
+        background-color: var(--sub-card-bg) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--card-border) !important;
+        font-weight: 600; font-size: 0.8rem;
+    }
+
+    .text-adaptive-main { color: var(--text-main) !important; }
+    .text-adaptive-muted { color: var(--text-muted) !important; }
+
+    .chart-container-box {
+        position: relative;
+        width: 100%;
+        height: 250px;
+    }
+
+    @media (max-width: 991.98px) {
+        .dashboard-container { padding: 0.5rem; }
+        .clinic-hero-banner { padding: 1.5rem; text-align: center; }
+        .hero-building-img { width: 85px; height: 85px; margin-top: 0.5rem; }
+    }
+</style>
+
+<!-- Ambient Background Effects -->
+<div class="ambient-glow glow-1"></div>
+<div class="ambient-glow glow-2"></div>
+
+<div class="dashboard-container">
+    <div class="dashboard-wrapper">
+
+        <!-- 1. HERO BANNER -->
+        <div class="glass-card clinic-hero-banner animate__animated animate__fadeInDown d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+            <div class="text-center text-md-start">
+                <div class="hero-badge">
+                    <i class="bi bi-heart-pulse-fill text-danger"></i>
+                    International Colleges for Excellence, Inc. &bull; Health Portal
+                </div>
+                <h1 class="hero-title mb-1">Student Health &amp; Clinic System</h1>
+                <p class="mb-0 text-adaptive-muted small">Have a Good Day, <strong class="text-adaptive-main">{{ user.username|title }}</strong>! Ready to provide prompt medical service.</p>
+            </div>
+
+            <div class="text-center flex-shrink-0">
+                <img src="{% static 'clinic/img/ice1.png' %}"
+                     alt="ICE Building"
+                     class="hero-building-img">
+            </div>
+        </div>
+
+        <!-- 2. METRIC STAT CARDS (Updated: Registered Students, Medicine Inventory, Dispensed Count, Low Stock/Alerts) -->
+        <div class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="glass-card metric-card d-flex align-items-center justify-content-between animate__animated animate__fadeInUp">
+                    <div>
+                        <span class="metric-label d-block mb-1">Registered Students</span>
+                        <h3 class="metric-value mb-0">{{ total_students|default:"0" }}</h3>
+                    </div>
+                    <div class="icon-orb orb-blue">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="glass-card metric-card d-flex align-items-center justify-content-between animate__animated animate__fadeInUp" style="animation-delay: 0.08s;">
+                    <div>
+                        <span class="metric-label d-block mb-1">Medicine Stock</span>
+                        <h3 class="metric-value mb-0">{{ total_medicines|default:"0" }}</h3>
+                    </div>
+                    <div class="icon-orb orb-green">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="glass-card metric-card d-flex align-items-center justify-content-between animate__animated animate__fadeInUp" style="animation-delay: 0.16s;">
+                    <div>
+                        <span class="metric-label d-block mb-1">Total Dispensed</span>
+                        <h3 class="metric-value mb-0">{{ total_dispensed|default:"0" }}</h3>
+                    </div>
+                    <div class="icon-orb orb-purple">
+                        <i class="bi bi-prescription2"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-lg-3">
+                <div class="glass-card metric-card d-flex align-items-center justify-content-between animate__animated animate__fadeInUp" style="animation-delay: 0.24s;">
+                    <div>
+                        <span class="metric-label d-block mb-1">Low Stock Alerts</span>
+                        <h3 class="metric-value mb-0">{{ low_stock_count|default:"0" }}</h3>
+                    </div>
+                    <div class="icon-orb orb-orange">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. QUICK OPERATIONS & HEALTH DESK SECURITY -->
+        <div class="row g-3">
+            <div class="col-12 col-lg-8">
+                <div class="glass-card content-panel animate__animated animate__fadeInLeft" style="animation-delay: 0.1s;">
+                    <h5 class="panel-title mb-1 d-flex align-items-center gap-2">
+                        <i class="bi bi-lightning-charge-fill" style="color: var(--neon-blue);"></i> Quick Clinic Operations
+                    </h5>
+                    <p class="small text-adaptive-muted mb-3">Select the module you wish to open for an immediate transaction.</p>
+
+                    <div class="row g-2">
+                        <div class="col-12 col-sm-6">
+                            <a href="{% url 'student_create' %}" class="action-tile">
+                                <div class="icon-orb orb-blue">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="action-title d-block text-truncate">Add Student &amp; Request</span>
+                                    <span class="action-desc d-block text-truncate">Single-form medical entry</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <a href="{% url 'medicine_list' %}" class="action-tile">
+                                <div class="icon-orb orb-green">
+                                    <i class="bi bi-capsule-pill"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="action-title d-block text-truncate">Medicine Stock</span>
+                                    <span class="action-desc d-block text-truncate">Stock &amp; inventory tracking</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <a href="{% url 'student_records' %}" class="action-tile">
+                                <div class="icon-orb orb-purple">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="action-title d-block text-truncate">Student Records</span>
+                                    <span class="action-desc d-block text-truncate">View database profiles</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <a href="{% url 'reports' %}" class="action-tile">
+                                <div class="icon-orb orb-orange">
+                                    <i class="bi bi-file-earmark-bar-graph-fill"></i>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <span class="action-title d-block text-truncate">Clinic Reports</span>
+                                    <span class="action-desc d-block text-truncate">Analytics &amp; data insights</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+                <div class="glass-card content-panel d-flex flex-column justify-content-between animate__animated animate__fadeInRight" style="animation-delay: 0.15s;">
+                    <div>
+                        <h5 class="panel-title mb-1 d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-lock-fill" style="color: var(--neon-purple);"></i> Health Desk Security
+                        </h5>
+                        <p class="small text-adaptive-muted mb-3">Real-time status ng iyong sistema at database.</p>
+
+                        <div class="p-3 rounded-3 mb-3 border border-opacity-10" style="background: var(--sub-card-bg);">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="font-size: 0.8rem;" class="fw-semibold text-adaptive-muted">Transaction Atomicity:</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill" style="font-size: 0.7rem;">Secure</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="font-size: 0.8rem;" class="fw-semibold text-adaptive-muted">Auto Inventory:</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill" style="font-size: 0.7rem;">Active</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span style="font-size: 0.8rem;" class="fw-semibold text-adaptive-muted">System Status:</span>
+                                <span class="small fw-bold" style="font-size: 0.75rem; color: var(--neon-green);">
+                                    <span class="pulse-dot-live"></span>Operational
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-top border-secondary border-opacity-25 text-center">
+                        <span class="text-adaptive-muted d-block fst-italic" style="font-size: 0.75rem;">
+                            "Health is wealth. Take care of every student's health."
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       <!-- 4. ANALYTICS CHART & RECENT ACTIVITIES -->
+<div class="row g-3">
+    <!-- Student Registration Overview Chart -->
+    <div class="col-12 col-lg-8">
+        <div class="glass-card content-panel animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                <div>
+                    <h5 class="panel-title mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-graph-up-arrow" style="color: var(--neon-blue);"></i> Student Registration Overview
+                    </h5>
+                    <span class="text-adaptive-muted small">Monthly registration trend for year <strong>{{ selected_year }}</strong></span>
+                </div>
+
+                <!-- Dynamic Year Selection Form (2024 - 2030) -->
+                <form method="GET" id="yearFilterForm">
+                    <select name="year" onchange="document.getElementById('yearFilterForm').submit();" class="form-select form-select-sm w-auto custom-select-adaptive">
+                        {% for y in available_years %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>Year {{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <div class="chart-container-box">
+                <canvas id="registrationChart"></canvas>
+            </div>
+
+            <p class="text-adaptive-muted small text-center mt-2 mb-0">
+                <i class="bi bi-info-circle me-1"></i> Click on any point on the chart to view students registered in that month.
+            </p>
+        </div>
+    </div>
+
+    <!-- Recent Activities Widget -->
+    <div class="col-12 col-lg-4">
+        <div class="glass-card content-panel animate__animated animate__fadeInUp" style="animation-delay: 0.25s;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="panel-title mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history" style="color: var(--neon-purple);"></i> Recent Activities
+                </h5>
+                <a href="{% url 'activity_log_list' %}" class="small text-decoration-none fw-bold" style="color: var(--neon-blue);">View all</a>
+            </div>
+
+            <div class="d-flex flex-column gap-3">
+                {% for activity in recent_activities %}
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Icon na may kulay base sa action_type o verb -->
+                    <div class="activity-icon 
+                        {% if activity.action_type == 'medicine' or 'medicine' in activity.action|lower %}orb-green
+                        {% elif activity.action_type == 'student' or 'student' in activity.action|lower %}orb-blue
+                        {% elif activity.action_type == 'dispense' or 'dispense' in activity.action|lower %}orb-orange
+                        {% elif activity.action_type == 'nurse' or 'nurse' in activity.action|lower %}orb-purple
+                        {% else %}orb-blue{% endif %}">
+                        <i class="bi 
+                            {% if activity.action_type == 'medicine' or 'medicine' in activity.action|lower %}bi-capsule
+                            {% elif activity.action_type == 'student' or 'student' in activity.action|lower %}bi-person-plus-fill
+                            {% elif activity.action_type == 'dispense' or 'dispense' in activity.action|lower %}bi-prescription2
+                            {% elif activity.action_type == 'nurse' or 'nurse' in activity.action|lower %}bi-person-badge-fill
+                            {% else %}bi-info-circle{% endif %}"></i>
+                    </div>
+
+                    <!-- Detalye ng Aktibidad -->
+                    <div class="flex-grow-1 overflow-hidden">
+                        <span class="d-block fw-bold small text-truncate text-adaptive-main">
+                            {{ activity.title|default:activity.action|default:activity }}
+                        </span>
+                        <span class="d-block text-adaptive-muted text-truncate" style="font-size: 0.73rem;">
+                            {{ activity.description|default:activity.details|default:"—" }}
+                        </span>
+                    </div>
+
+                    <!-- Oras o Timestamp -->
+                    <span class="text-adaptive-muted flex-shrink-0" style="font-size: 0.7rem;">
+                        {% if activity.timestamp %}
+                            {{ activity.timestamp|timesince }} ago
+                        {% elif activity.created_at %}
+                            {{ activity.created_at|timesince }} ago
+                        {% else %}
+                            Kamakailan
+                        {% endif %}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-center small text-adaptive-muted py-3">Wala pang naitalang activity.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para sa pagpapakita ng listahan ng mga estudyante kapag pinindot ang buwan sa chart -->
+<div class="modal fade" id="monthDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0" style="background: var(--card-bg) !important;">
+            <div class="modal-header border-bottom border-secondary border-opacity-25">
+                <h5 class="modal-title fw-bold text-adaptive-main" id="modalMonthTitle">Registered Students</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="list-group list-group-flush" id="modalStudentList">
+                    <!-- Dynamic list content via JavaScript -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Safe JSON Script Tags for Chart Data -->
+{{ chart_counts_json|json_script:"chart-counts-data" }}
+{{ students_by_month_json|json_script:"students-by-month-data" }}
+{{ selected_year|json_script:"selected-year-data" }}
+
+<!-- Dynamic Chart Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const canvas = document.getElementById('registrationChart');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        
+        function getCssVar(varName) {
+            return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+        }
+
+        const primaryBlue = getCssVar('--neon-blue') || '#0284c7';
+        const primaryPurple = getCssVar('--neon-purple') || '#8b5cf6';
+        const gridColor = getCssVar('--grid-color') || 'rgba(226, 232, 240, 0.8)';
+        const textColor = getCssVar('--text-muted') || '#64748b';
+
+        // Safe JSON parsing mula sa json_script tags
+        function parseJsonElement(id, fallback) {
+            const el = document.getElementById(id);
+            if (!el) return fallback;
+            try {
+                return JSON.parse(el.textContent);
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        // Kunin ang dynamic data
+        let chartCounts = parseJsonElement('chart-counts-data', []);
+        let studentsByMonth = parseJsonElement('students-by-month-data', {});
+        const selectedYear = parseJsonElement('selected-year-data', null);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        if (!Array.isArray(chartCounts)) chartCounts = [];
+        if (typeof studentsByMonth !== 'object' || studentsByMonth === null) studentsByMonth = {};
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, primaryBlue + '35');
+        gradient.addColorStop(1, primaryBlue + '00');
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthNames,
+                datasets: [{
+                    label: 'Registrations',
+                    data: chartCounts,
+                    borderColor: primaryBlue,
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: primaryPurple,
+                    pointBorderColor: '#ffffff',
+                    pointHoverRadius: 8,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.raw} registered student(s)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, font: { size: 11, family: 'Plus Jakarta Sans', weight: '600' } }
+                    },
+                    y: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, font: { size: 11, family: 'Plus Jakarta Sans', weight: '600' }, stepSize: 1 },
+                        beginAtZero: true
+                    }
+                },
+                // On-click event sa chart para magpakita ng modal ng mga estudyante
+                onClick: (e, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        const monthNum = index + 1;
+                        const monthName = monthNames[index];
+                        const students = studentsByMonth[monthNum] || [];
+
+                        document.getElementById('modalMonthTitle').innerText = `Registered Students in ${monthName}${selectedYear !== null ? ' ' + selectedYear : ''}`;
+                        const listContainer = document.getElementById('modalStudentList');
+                        listContainer.innerHTML = '';
+
+                        if (students.length === 0) {
+                            listContainer.innerHTML = `<li class="list-group-item bg-transparent text-adaptive-muted text-center py-3">Wala pang nag-register noong ${monthName}.</li>`;
+                        } else {
+                            students.forEach(st => {
+                                const li = document.createElement('li');
+                                li.className = 'list-group-item bg-transparent d-flex justify-content-between align-items-center text-adaptive-main';
+                                li.innerHTML = `
+                                    <div>
+                                        <i class="bi bi-person-check text-success me-2"></i>
+                                        <strong>${st.full_name}</strong>
+                                    </div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill">${st.created_at}</span>
+                                `;
+                                listContainer.appendChild(li);
+                            });
+                        }
+
+                        const modal = new bootstrap.Modal(document.getElementById('monthDetailsModal'));
+                        modal.show();
+                    }
+                }
+            }
+        });
+
+        // Resize Observer para automatic mag-adjust ang Chart kapag binuksan/sinara ang sidebar
+        const resizeObserver = new ResizeObserver(() => {
+            chart.resize();
+        });
+        resizeObserver.observe(canvas.parentElement);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,783 @@
+{% extends "clinic/base.html" %}
+{% load static %}
+
+{% block title %}System Settings - Clinic Management System{% endblock %}
+
+{% block content %}
+<!-- External Dependencies -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    /* ==========================================================================
+       1. GLOBAL THEME VARIABLES & BASE STYLES
+       ========================================================================== */
+    :root {
+        --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --border-radius-sm: 10px;
+        --border-radius-md: 14px;
+        --border-radius-lg: 18px;
+        --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-bs-theme="light"] {
+        --settings-bg: #FFFFFF;
+        --settings-border: #E2E8F0;
+        --text-primary: #0F172A;
+        --text-secondary: #64748B;
+        --row-border: #F1F5F9;
+        --input-bg: #FFFFFF;
+        --input-disabled-bg: #F8FAFC;
+        --accent-blue: #2563EB;
+        --accent-blue-hover: #1D4ED8;
+        --hero-bg: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+        --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+    }
+
+    [data-bs-theme="dark"] {
+        --settings-bg: #1E293B;
+        --settings-border: rgba(255, 255, 255, 0.08);
+        --text-primary: #F8FAFC;
+        --text-secondary: #94A3B8;
+        --row-border: rgba(255, 255, 255, 0.06);
+        --input-bg: #0F172A;
+        --input-disabled-bg: #1E293B;
+        --accent-blue: #38BDF8;
+        --accent-blue-hover: #0284C7;
+        --hero-bg: #1E293B;
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .settings-container {
+        font-family: var(--font-primary);
+        color: var(--text-primary);
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    /* Glassmorphism Card Style */
+    .cms-card {
+        background: var(--settings-bg);
+        border: 1px solid var(--settings-border);
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        transition: var(--transition-smooth);
+    }
+
+    /* ==========================================================================
+       2. DASHBOARD-STYLE HERO HEADER
+       ========================================================================== */
+    .dashboard-hero-card {
+        background: var(--hero-bg);
+        border: 1px solid var(--settings-border);
+        border-radius: var(--border-radius-lg);
+        padding: 1.75rem 2rem;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(37, 99, 235, 0.15);
+        color: var(--accent-blue);
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin: 0 0 0.35rem 0;
+    }
+
+    .hero-subtitle {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin: 0;
+    }
+
+    .logo-box {
+        width: 100%;
+        height: 68px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--settings-border);
+        border-radius: var(--border-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    /* ==========================================================================
+       3. SETTINGS LAYOUT & NAVIGATION
+       ========================================================================== */
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 24px;
+        align-items: start;
+        margin-top: 20px;
+    }
+
+    .settings-nav {
+        background: var(--settings-bg);
+        border: 1px solid var(--settings-border);
+        border-radius: var(--border-radius-lg);
+        padding: 10px;
+        box-shadow: var(--card-shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        position: sticky;
+        top: 20px;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .settings-nav a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: var(--border-radius-sm);
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        transition: var(--transition-smooth);
+    }
+
+    .settings-nav a:hover {
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-blue);
+    }
+
+    /* ==========================================================================
+       4. SETTINGS SECTIONS & CONTROLS
+       ========================================================================== */
+    .settings-section {
+        background: var(--settings-bg);
+        border: 1px solid var(--settings-border);
+        border-radius: var(--border-radius-lg);
+        padding: 26px 28px;
+        margin-bottom: 20px;
+        box-shadow: var(--card-shadow);
+        scroll-margin-top: 30px;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .settings-section h3 {
+        margin-top: 0;
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .settings-section h3 i {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        background: rgba(37, 99, 235, 0.1);
+        color: var(--accent-blue);
+    }
+
+    .settings-section p.desc {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 0.825rem;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--border-radius-sm);
+        border: 1px solid var(--settings-border);
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        outline: none;
+        transition: var(--transition-smooth);
+    }
+
+    .form-control-custom:focus {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-control-custom:disabled {
+        background-color: var(--input-disabled-bg);
+        color: var(--text-secondary);
+        cursor: not-allowed;
+    }
+
+    /* Toggle Switches */
+    .toggle-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--row-border);
+    }
+
+    .toggle-row:last-child {
+        border-bottom: none;
+    }
+
+    .toggle-row .label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+    }
+
+    .toggle-row .sub {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
+
+    .switch {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider-toggle {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background-color: #CBD5E1;
+        border-radius: 999px;
+        transition: background-color 0.2s ease;
+    }
+
+    .slider-toggle::before {
+        content: "";
+        position: absolute;
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #FFFFFF;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .switch input:checked + .slider-toggle {
+        background-color: #2563EB;
+    }
+
+    .switch input:checked + .slider-toggle::before {
+        transform: translateX(22px);
+    }
+
+    [data-bs-theme="dark"] .slider-toggle {
+        background-color: #475569;
+    }
+
+    [data-bs-theme="dark"] .switch input:checked + .slider-toggle {
+        background-color: #38BDF8;
+    }
+
+    /* Buttons */
+    .btn-cms-primary {
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF !important;
+        font-weight: 600;
+        font-size: 0.875rem;
+        border: none;
+        border-radius: var(--border-radius-sm);
+        padding: 0.65rem 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+        transition: var(--transition-smooth);
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .btn-cms-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+        color: #FFFFFF;
+    }
+
+    .btn-secondary-custom {
+        background: #64748B;
+        color: #FFFFFF;
+        border: none;
+        padding: 9px 18px;
+        border-radius: var(--border-radius-sm);
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+    }
+
+    .btn-secondary-custom:hover {
+        background: #475569;
+        color: #FFFFFF;
+    }
+
+    .settings-avatar-circle {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563EB 0%, #06B6D4 100%);
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+
+    /* ==========================================================================
+       5. CRITICAL FIX FOR BOOTSTRAP MODAL BACKDROP OVERLAP
+       ========================================================================== */
+    body.modal-open .modal-backdrop {
+        z-index: 1040 !important;
+    }
+
+    #changePasswordModal {
+        z-index: 1055 !important;
+    }
+
+    #changePasswordModal .modal-dialog {
+        z-index: 1060 !important;
+        position: relative !important;
+    }
+
+    #changePasswordModal .modal-content {
+        background-color: var(--settings-bg) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--settings-border) !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+    }
+
+    @media (max-width: 800px) {
+        .settings-layout { grid-template-columns: 1fr; }
+        .settings-nav {
+            position: relative;
+            top: 0;
+            flex-direction: row;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+</style>
+
+<div class="settings-container">
+
+    <!-- 1. DASHBOARD-STYLE HERO HEADER -->
+    <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3 animate__animated animate__fadeIn">
+        <div>
+            <div class="hero-badge">
+                <i class="bi bi-heart-pulse-fill"></i> International Colleges for Excellence, Inc. • Health Portal
+            </div>
+            <h1 class="hero-title">System Settings</h1>
+            <p class="hero-subtitle">Manage your account preferences, system security, and notification configurations.</p>
+        </div>
+        <div class="logo-box d-none d-sm-flex">
+            <i class="bi bi-gear-wide-connected fs-2 text-info"></i>
+        </div>
+    </div>
+
+    <!-- 2. SETTINGS LAYOUT -->
+    <div class="settings-layout animate__animated animate__fadeIn">
+        
+        <!-- SIDE NAV -->
+        <nav class="settings-nav">
+            <a href="#profile"><i class="bi bi-person-gear"></i> Profile</a>
+            <a href="#appearance"><i class="bi bi-moon-stars"></i> Appearance</a>
+            <a href="#security"><i class="bi bi-shield-lock"></i> Security</a>
+            <a href="#notifications"><i class="bi bi-bell"></i> Notifications</a>
+            <a href="#support"><i class="bi bi-info-circle"></i> Support &amp; About</a>
+            <a href="#help"><i class="bi bi-question-circle"></i> Help &amp; Support</a>
+            <a href="#terms"><i class="bi bi-file-text"></i> Terms &amp; Policies</a>
+            <a href="#cache"><i class="bi bi-hdd-stack"></i> Storage &amp; Cache</a>
+        </nav>
+
+        <!-- MAIN CONTENT SECTIONS -->
+        <div>
+            <!-- PROFILE -->
+            <div class="settings-section" id="profile">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="settings-avatar-circle">{{ user.username|slice:":1"|upper }}</div>
+                    <div>
+                        <h3 class="mb-1" style="border: none; padding: 0;"><i class="bi bi-person-circle"></i> Profile Information</h3>
+                        <p class="desc mb-0" style="margin-top: 2px;">Update your personal account details and contact information.</p>
+                    </div>
+                </div>
+                    
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control-custom" value="{{ user.username }}" disabled>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Email Address</label>
+                            <input type="email" name="email" class="form-control-custom" value="{{ user.email }}">
+                        </div>
+                    </div>
+
+                    {% if student %}
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact_number" class="form-control-custom" value="{{ student.contact_number }}">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Address</label>
+                            <input type="text" name="address" class="form-control-custom" value="{{ student.address }}">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div style="margin-top: 10px;">
+                        <button type="submit" class="btn-cms-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- APPEARANCE -->
+            <div class="settings-section" id="appearance">
+                <h3><i class="bi bi-moon-stars"></i> Appearance Settings</h3>
+                <p class="desc">Customize how the clinic management system looks on your screen.</p>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Dark Mode</div>
+                        <div class="sub">Switch between Light and Dark interface themes</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleThemeFromSettings()">
+                        <span class="slider-toggle"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- SECURITY -->
+            <div class="settings-section" id="security">
+                <h3><i class="bi bi-shield-check"></i> Security</h3>
+                <p class="desc">Manage your account security, password updates, and authentication access.</p>
+                
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3 rounded-3" style="background: rgba(37, 99, 235, 0.05); border: 1px solid var(--settings-border);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center justify-content-center rounded-circle" style="width: 42px; height: 42px; background: rgba(37, 99, 235, 0.1); color: var(--accent-blue);">
+                            <i class="bi bi-key-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" style="color: var(--text-primary);">Account Password</h6>
+                            <p class="mb-0 text-secondary" style="font-size: 0.85rem;">Regularly update your password to maintain system security.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Trigger Button for Password Modal -->
+                    <button type="button" class="btn-cms-primary d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i class="bi bi-shield-lock"></i> Change Password
+                    </button>
+                </div>
+            </div>
+
+            <!-- NOTIFICATIONS -->
+            <div class="settings-section" id="notifications">
+                <h3><i class="bi bi-bell-fill"></i> Notifications</h3>
+                <p class="desc">Configure how you receive alerts and updates.</p>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Low Stock Alerts</div>
+                        <div class="sub">Get notified when medicine inventory drops below the threshold</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="notifStock" class="notif-toggle" checked><span class="slider-toggle"></span></label>
+                </div>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Email Notifications</div>
+                        <div class="sub">Send copy of major notifications to your registered email</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="notifEmail" class="notif-toggle"><span class="slider-toggle"></span></label>
+                </div>
+            </div>
+
+            <!-- SUPPORT -->
+            <div class="settings-section" id="support">
+                <h3><i class="bi bi-building"></i> Support &amp; About</h3>
+                <p class="desc">Clinic Management System developed for International Colleges for Excellence, Inc. (ICE).</p>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">System Version 1.0.0 &bull; &copy; 2026 ICE Clinic</p>
+            </div>
+
+            <!-- HELP -->
+            <div class="settings-section" id="help">
+                <h3><i class="bi bi-headset"></i> Help &amp; Support</h3>
+                <p class="desc">Need technical assistance? Get in touch with our IT support team.</p>
+                <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 6px;"><i class="bi bi-envelope me-1"></i> clinic@school.edu.ph</p>
+                <p style="font-size: 0.9rem; font-weight: 600; margin: 0;"><i class="bi bi-telephone me-1"></i> (000) 000-0000</p>
+            </div>
+
+            <!-- TERMS -->
+            <div class="settings-section" id="terms">
+                <h3><i class="bi bi-file-earmark-text"></i> Terms &amp; Policies</h3>
+                <p class="desc" style="margin-bottom: 0;">By using this system, you agree to comply with the school's data privacy policies. All medical records and student data strictly remain confidential for clinic administration purposes only.</p>
+            </div>
+
+            <!-- CACHE -->
+            <div class="settings-section" id="cache">
+                <h3><i class="bi bi-cpu"></i> Cache &amp; Storage</h3>
+                <p class="desc">Manage browser storage and local data caching for optimal performance.</p>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Free Up Storage Space</div>
+                        <div class="sub">Clear temporary session files and local browser cache</div>
+                    </div>
+                    <button type="button" class="btn-secondary-custom" id="clearCacheBtn" onclick="clearCache()">Clear Cache Now</button>
+                </div>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Data Saver Mode</div>
+                        <div class="sub">Compress images and disable non-essential auto-refreshing</div>
+                    </div>
+                    <label class="switch"><input type="checkbox" id="dataSaverToggle"><span class="slider-toggle"></span></label>
+                </div>
+
+                <div class="toggle-row">
+                    <div>
+                        <div class="label">Estimated Cache Size</div>
+                        <div class="sub" id="cacheSizeLabel">Calculating storage usage...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================== -->
+<!-- MODAL HTML (WILL BE AUTOMATICALLY MOVED TO BODY ROOT VIA JS) -->
+<!-- ========================================================================== -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--border-radius-lg);">
+            
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="changePasswordModalLabel" style="color: var(--text-primary);">
+                    <i class="bi bi-shield-lock-fill" style="color: var(--accent-blue);"></i> Change Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+           <form method="post" action="{% url 'change_password' %}">
+    {% csrf_token %}
+                <div class="modal-body pt-3">
+                    <p class="text-secondary mb-3" style="font-size: 0.875rem;">Enter your current password and your new password below.</p>
+                    
+                    <!-- Old Password -->
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.825rem; color: var(--text-primary);">Current Password</label>
+                        <div class="input-group">
+                            <input type="password" name="old_password" class="form-control-custom" id="oldPassword" required placeholder="••••••••">
+                            <button class="btn btn-outline-secondary border-start-0" type="button" style="border-color: var(--settings-border);" onclick="togglePass('oldPassword', 'iconOld')">
+                                <i class="bi bi-eye" id="iconOld"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="my-3" style="border-color: var(--row-border);">
+
+                    <!-- New Password -->
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.825rem; color: var(--text-primary);">New Password</label>
+                        <div class="input-group">
+                            <input type="password" name="new_password1" class="form-control-custom" id="newPassword" required placeholder="At least 8 characters">
+                            <button class="btn btn-outline-secondary border-start-0" type="button" style="border-color: var(--settings-border);" onclick="togglePass('newPassword', 'iconNew')">
+                                <i class="bi bi-eye" id="iconNew"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Confirm New Password -->
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-semibold" style="font-size: 0.825rem; color: var(--text-primary);">Confirm New Password</label>
+                        <div class="input-group">
+                            <input type="password" name="new_password2" class="form-control-custom" id="confirmPassword" required placeholder="Repeat new password">
+                            <button class="btn btn-outline-secondary border-start-0" type="button" style="border-color: var(--settings-border);" onclick="togglePass('confirmPassword', 'iconConfirm')">
+                                <i class="bi bi-eye" id="iconConfirm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Guidelines Box -->
+                    <div class="p-3 rounded-3" style="background: rgba(15, 23, 42, 0.2); font-size: 0.8rem; color: var(--text-secondary);">
+                        <div class="fw-bold mb-1" style="color: var(--text-primary);">Password Requirements:</div>
+                        <ul class="mb-0 ps-3">
+                            <li>At least 8 characters long</li>
+                            <li>Cannot be too common or easily guessable</li>
+                            <li>Cannot be entirely numeric</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-cms-primary">Update Password</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- BOOTSTRAP JS BUNDLE -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // AUTOMATIC MODAL RELOCATION TO BODY ROOT
+        // Ito ang nagso-solve sa z-index issue kapag nasa loob ng container ang modal!
+        const modalEl = document.getElementById('changePasswordModal');
+        if (modalEl && modalEl.parentElement !== document.body) {
+            document.body.appendChild(modalEl);
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            darkModeToggle.checked = (savedTheme === 'dark');
+        }
+
+        document.querySelectorAll('.notif-toggle').forEach(toggle => {
+            const storedVal = localStorage.getItem(toggle.id);
+            if (storedVal !== null) {
+                toggle.checked = (storedVal === 'true');
+            }
+            toggle.addEventListener('change', function () {
+                localStorage.setItem(this.id, this.checked);
+            });
+        });
+    });
+
+    function toggleThemeFromSettings() {
+        const htmlElement = document.documentElement;
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const newTheme = darkModeToggle.checked ? 'dark' : 'light';
+        htmlElement.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    }
+
+    function estimateCacheSize() {
+        const label = document.getElementById('cacheSizeLabel');
+        if (!label) return;
+        if (navigator.storage && navigator.storage.estimate) {
+            navigator.storage.estimate().then(function (estimate) {
+                const usedMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+                label.textContent = usedMB + ' MB currently used in storage';
+            });
+        } else {
+            label.textContent = 'Storage estimation is not supported in this browser.';
+        }
+    }
+    estimateCacheSize();
+
+    function clearCache() {
+        const btn = document.getElementById('clearCacheBtn');
+        btn.textContent = 'Clearing...';
+        btn.disabled = true;
+
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        const dataSaver = localStorage.getItem('data_saver');
+
+        try {
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) { }
+
+        localStorage.setItem('theme', currentTheme);
+        if (dataSaver !== null) {
+            localStorage.setItem('data_saver', dataSaver);
+        }
+
+        if ('caches' in window) {
+            caches.keys().then(function (names) {
+                Promise.all(names.map(function (name) { return caches.delete(name); })).then(function () {
+                    setTimeout(function () { location.reload(true); }, 400);
+                });
+            });
+        } else {
+            setTimeout(function () { location.reload(true); }, 400);
+        }
+    }
+
+    const dataSaverToggle = document.getElementById('dataSaverToggle');
+    if (dataSaverToggle) {
+        dataSaverToggle.checked = localStorage.getItem('data_saver') === 'on';
+        dataSaverToggle.addEventListener('change', function () {
+            localStorage.setItem('data_saver', this.checked ? 'on' : 'off');
+        });
+    }
+
+    /* Password Toggle Helper */
+    function togglePass(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace("bi-eye", "bi-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.replace("bi-eye-slash", "bi-eye");
+        }
+    const modalEl = document.getElementById('changePasswordModal');
+if (modalEl && modalEl.parentElement !== document.body) {
+    document.body.appendChild(modalEl);
+}
+    }
+</script>
+{% endblock %}
