@@ -19,8 +19,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 # Django Database & Queries
 from django.db import models, transaction
-from django.db.models import Count, Sum
-
+from django.db.models import Count, Sum , Q
 # Local Application Imports
 from .decorators import role_required
 from .forms import NurseForm
@@ -85,7 +84,11 @@ def student_records(request):
     query = request.GET.get('q', '')
     
     if query:
-        students = Student.objects.filter(full_name__icontains=query)
+        # Hinahanap nito kung ang query ay tugma sa full name O sa student ID 
+        # (Tandaan: palitan ang 'student_id' ng kung ano ang eksaktong pangalan ng field sa model mo kung 'id_number' man ito)
+        students = Student.objects.filter(
+            Q(full_name__icontains=query) | Q(student_id__icontains=query)
+        )
     else:
         students = Student.objects.all()
 
@@ -103,7 +106,6 @@ def student_records(request):
         'total_dispensed': total_dispensed,
     }
     return render(request, 'clinic/students/student_records.html', context)
-
 
 @login_required
 @role_required("admin", "nurse")
