@@ -292,20 +292,19 @@ def student_edit(request, pk):
 @role_required("admin")
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
-    
-    # I-check kung Nurse ang user (subukan natin ang iba't ibang paraan ng pag-check ng role)
+
+    # I-check kung Nurse ang user
     is_nurse = False
     if request.user.groups.filter(name__iexact='nurse').exists():
         is_nurse = True
     elif hasattr(request.user, 'role') and str(request.user.role).lower() == 'nurse':
         is_nurse = True
-    elif not request.user.is_superuser and not request.user.is_staff: # Kung hindi admin/staff
-        # Pwede mo ring idagdag ito kung strict ang rule mo
+    elif not request.user.is_superuser and not request.user.is_staff:
         pass
 
     if is_nurse:
         messages.error(request, "Bawal mag-delete ang mga nurse.")
-        return redirect("student_detail", pk=student.pk) # O kung saan man ang detail page
+        return redirect("student_views", pk=student.pk)
 
     if request.method == "POST":
         student.delete()
@@ -317,9 +316,9 @@ def student_delete(request, pk):
         "clinic/confirm_delete.html",
         {
             "object_name": student.full_name,
-            "cancel_url": "student_detail",
+            "cancel_url": "student_views",
             "cancel_pk": student.pk,
-        },
+        }
     )
 class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'clinic/auth/settings.html'
