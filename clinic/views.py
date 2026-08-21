@@ -288,15 +288,30 @@ def student_edit(request, pk):
         return redirect("student_views", pk=student.pk)
         
     return render(request, "clinic/students/student_create.html", {"student": student})
-
 @login_required
 @role_required("admin")
 def student_delete(request, pk):
     student = get_object_or_404(Student, pk=pk)
+    
+    # I-check kung Nurse ang user (subukan natin ang iba't ibang paraan ng pag-check ng role)
+    is_nurse = False
+    if request.user.groups.filter(name__iexact='nurse').exists():
+        is_nurse = True
+    elif hasattr(request.user, 'role') and str(request.user.role).lower() == 'nurse':
+        is_nurse = True
+    elif not request.user.is_superuser and not request.user.is_staff: # Kung hindi admin/staff
+        # Pwede mo ring idagdag ito kung strict ang rule mo
+        pass
+
+    if is_nurse:
+        messages.error(request, "Bawal mag-delete ang mga nurse.")
+        return redirect("student_detail", pk=student.pk) # O kung saan man ang detail page
+
     if request.method == "POST":
         student.delete()
         messages.success(request, "Natanggal ang student record.")
-        return redirect("student_list")
+        return redirect("student_records")
+
     return render(
         request,
         "clinic/confirm_delete.html",
@@ -306,7 +321,6 @@ def student_delete(request, pk):
             "cancel_pk": student.pk,
         },
     )
-
 class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'clinic/auth/settings.html'
     success_url = reverse_lazy('settings')
@@ -507,7 +521,7 @@ def reports(request):
     return render(request, 'clinic/auth/reports.html', context)
 
 @login_required
-@role_required('admin')
+@role_required("admin", "nurse")
 def nurse_add(request):
     if request.method == 'POST':
         form = NurseForm(request.POST, request.FILES)
@@ -547,7 +561,7 @@ def nurse_add(request):
         form = NurseForm()
     return render(request, 'clinic/nurses/nurse_add.html', {'form': form, 'title': 'Add Nurse'})
 @login_required
-@role_required('admin')
+@role_required("admin")
 def nurse_edit(request, pk):
     nurse = get_object_or_404(Nurse, pk=pk)
     if request.method == 'POST':
@@ -590,18 +604,20 @@ def nurse_edit(request, pk):
     return render(request, 'clinic/nurses/nurse_add.html', {'form': form, 'title': 'Edit Nurse', 'nurse': nurse})
 
 @login_required
-@role_required("admin")  
+@role_required("admin", "nurse")
 def nurse_list(request):
     nurses = Nurse.objects.all().order_by("full_name")
     return render(request, "clinic/nurses/nurse_list.html", {"nurses": nurses})
 
 @login_required
+@role_required("admin", "nurse")
 def nurse_views(request, pk):
     nurse = get_object_or_404(Nurse, pk=pk)
     return render(request, "clinic/nurses/nurse_views.html", {"nurse": nurse})
 
 
 @login_required
+@role_required("admin")
 def nurse_delete(request, pk):
     nurse = get_object_or_404(Nurse, pk=pk)
     if request.method == "POST":
