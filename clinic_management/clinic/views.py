@@ -262,16 +262,19 @@ def register(request):
 def student_edit(request, pk):
     student = get_object_or_404(Student, pk=pk)
     if request.method == "POST":
-        student.student_id = request.POST["student_id"]
-        student.full_name = request.POST["full_name"]
-        student.age = request.POST["age"]
-        student.gender = request.POST["gender"]
-        student.address = request.POST["address"]
-        student.contact_number = request.POST["contact_number"]
-        student.course = request.POST["course"]
-        student.year_level = request.POST["year_level"]
+        student.student_id = request.POST.get("student_id", "")
+        student.first_name = request.POST.get("first_name", "")
+        student.middle_name = request.POST.get("middle_name", "")
+        student.last_name = request.POST.get("last_name", "")
+        student.full_name = f"{student.first_name} {student.middle_name} {student.last_name}".strip()
+        student.age = request.POST.get("age", "")
+        student.gender = request.POST.get("gender", "")
+        student.address = request.POST.get("address", "")
+        student.contact_number = request.POST.get("contact_number", "")
+        student.course = request.POST.get("course", "")
+        student.year_level = request.POST.get("year_level", "")
         student.section = request.POST.get("section", "")
-        student.emergency_contact = request.POST["emergency_contact"]
+        student.emergency_contact = request.POST.get("emergency_contact", "")
         student.save()
         messages.success(request, "Na-update ang impormasyon ng student.")
         return redirect("student_views", pk=student.pk)
