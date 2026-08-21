@@ -234,7 +234,7 @@
             </p>
         </div>
         <div class="d-none d-sm-block">
-            <a href="{% url 'student_detail' student.pk %}" class="btn-cms-cancel">
+            <a href="{% url 'student_views' student.pk %}">Cancel</a>
                 <i class="bi bi-arrow-left"></i> Bumalik
             </a>
         </div>
@@ -292,7 +292,7 @@
 
             <!-- Action Buttons -->
             <div class="button-area">
-                <a href="{% url 'student_detail' student.pk %}" class="btn-cms-cancel">Cancel</a>
+                <a href="{% url 'student_views' student.pk %}" class="...">Cancel</a>
                 <button type="submit" class="btn-cms-primary">
                     <i class="bi bi-check-circle-fill"></i> I-save at Ibawas sa Stock
                 </button>
