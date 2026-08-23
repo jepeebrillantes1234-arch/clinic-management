@@ -1,3 +1,5 @@
+from email.mime import image
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
@@ -37,6 +39,9 @@ def medicine_create(request):
 
         expiration_date = request.POST.get("expiration_date")
         
+        # 1. KUNIN MUNA ANG IMAGE MULA SA request.FILES DITO:
+        medicine_image = request.FILES.get("image")
+        
         medicine = Medicine.objects.create(
             name=med_name,
             category=category,
@@ -44,6 +49,7 @@ def medicine_create(request):
             unit=unit,
             expiration_date=expiration_date if expiration_date else None,
             low_stock_threshold=low_stock_threshold,
+            image=medicine_image  # 2. GAMITIN ANG TAMANG VARIABLE NA YAN DITO
         )
         
         ActivityLog.objects.create(
