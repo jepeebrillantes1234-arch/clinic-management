@@ -20,14 +20,14 @@ urlpatterns = [
     path('medicines/<int:pk>/edit/', views.medicine_edit, name='medicine_edit'),
     path('medicines/<int:pk>/delete/', views.medicine_delete, name='medicine_delete'),
 
-    # Students (Dito na dadaan ang pagdaragdag ng estudyante)
+    # Students
     path('students/', views.student_records, name='student_records'),
     path('students/add/', views.student_create, name='student_create'),
     path('students/<int:pk>/', views.student_views, name='student_views'),
     path('students/<int:pk>/edit/', views.student_edit, name='student_edit'),
     path('students/<int:pk>/delete/', views.student_delete, name='student_delete'),
 
-    # Medicine Records (Dispensing History)
+    # Medicine Records
     path('students/<int:student_pk>/medicine-record/add/', views.medicine_record_create, name='medicine_record_create'),
     path('medicine-record/<int:pk>/edit/', views.medicine_record_edit, name='medicine_record_edit'),
     path('medicine-record/<int:pk>/delete/', views.medicine_record_delete, name='medicine_record_delete'),
