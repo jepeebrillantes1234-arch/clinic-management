@@ -14,7 +14,7 @@ def low_stock_alerts(request):
 
     from .models import Medicine
 
-    low_stock_medicines = [m for m in Medicine.objects.all() if m.is_low_stock]
+    low_stock_medicines = [m for m in Medicine.objects.filter(is_deleted=False) if m.is_low_stock]
 
     return {
         'nav_low_stock_medicines': low_stock_medicines,

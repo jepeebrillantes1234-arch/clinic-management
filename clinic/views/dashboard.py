@@ -27,16 +27,16 @@ from clinic.models import (
 def dashboard(request):
     selected_year = int(request.GET.get('year', datetime.now().year))
     
-    total_students = Student.objects.count()
-    total_medicines = Medicine.objects.aggregate(total=Sum('quantity_in_stock'))['total'] or 0
-    total_dispensed = MedicineRecord.objects.aggregate(total=Sum('quantity'))['total'] or 0
-    low_stock_count = Medicine.objects.filter(quantity_in_stock__lte=10).count()
+    total_students = Student.objects.filter(is_deleted=False).count()
+    total_medicines = Medicine.objects.filter(is_deleted=False).aggregate(total=Sum('quantity_in_stock'))['total'] or 0
+    total_dispensed = MedicineRecord.objects.filter(is_deleted=False, student__is_deleted=False).aggregate(total=Sum('quantity'))['total'] or 0
+    low_stock_count = Medicine.objects.filter(is_deleted=False, quantity_in_stock__lte=10).count()
 
     chart_counts = []
     students_by_month = {}
     
     for month in range(1, 13):
-        month_students = Student.objects.filter(date_registered__year=selected_year, date_registered__month=month)
+        month_students = Student.objects.filter(is_deleted=False, date_registered__year=selected_year, date_registered__month=month)
         count = month_students.count()
         chart_counts.append(count)
         
@@ -48,7 +48,7 @@ def dashboard(request):
         ]
 
     available_years = list(range(2024, 2031))
-    recent_activities = ActivityLog.objects.all().order_by('-timestamp')[:5]
+    recent_activities = ActivityLog.objects.filter(is_deleted=False).order_by('-timestamp')[:5]
 
     context = {
         'total_students': total_students,
@@ -198,7 +198,7 @@ def login_activity(request):
 @role_required('admin')
 def activity_log_list(request):
     query = request.GET.get('q', '').strip()
-    activities = ActivityLog.objects.select_related('user').order_by('-timestamp')
+    activities = ActivityLog.objects.filter(is_deleted=False).select_related('user').order_by('-timestamp')
 
     if query:
         activities = activities.filter(
@@ -218,7 +218,7 @@ def activity_log_list(request):
 def delete_selected_activities(request):
     if request.method == 'POST':
         ids = request.POST.getlist('activity_ids')
-        deleted_count, _ = ActivityLog.objects.filter(id__in=ids).delete()
+        deleted_count = ActivityLog.objects.filter(id__in=ids, is_deleted=False).update(is_deleted=True)
         messages.success(request, f"Successfully deleted {deleted_count} selected activity log(s).")
     return redirect('activity_log_list')
 
@@ -226,8 +226,8 @@ def delete_selected_activities(request):
 @role_required('admin')
 def delete_all_activities(request):
     if request.method == 'POST':
-        count = ActivityLog.objects.count()
-        ActivityLog.objects.all().delete()
+        count = ActivityLog.objects.filter(is_deleted=False).count()
+        ActivityLog.objects.filter(is_deleted=False).update(is_deleted=True)
         messages.success(request, f"Successfully deleted all {count} activity log entries.")
     return redirect('activity_log_list')
 
@@ -240,24 +240,24 @@ def logout_view(request):
 @role_required('admin', 'nurse')
 def reports(request):
     students_by_course = (
-        Student.objects.values('course')
+        Student.objects.filter(is_deleted=False).values('course')
         .annotate(total=Count('id'))
         .order_by('-total')
     )
     students_by_year = (
-        Student.objects.values('year_level')
+        Student.objects.filter(is_deleted=False).values('year_level')
         .annotate(total=Count('id'))
         .order_by('year_level')
     )
 
-    total_medicines = Medicine.objects.count()
-    low_stock_medicines = [m for m in Medicine.objects.all() if m.is_low_stock]
-    expiring_medicines = [m for m in Medicine.objects.all() if m.is_expiring_soon]
+    total_medicines = Medicine.objects.filter(is_deleted=False).count()
+    low_stock_medicines = [m for m in Medicine.objects.filter(is_deleted=False) if m.is_low_stock]
+    expiring_medicines = [m for m in Medicine.objects.filter(is_deleted=False) if m.is_expiring_soon]
 
-    total_dispensed = MedicineRecord.objects.aggregate(total=Sum('quantity'))['total'] or 0
+    total_dispensed = MedicineRecord.objects.filter(is_deleted=False, student__is_deleted=False).aggregate(total=Sum('quantity'))['total'] or 0
 
     top_medicines = (
-        MedicineRecord.objects.values('medicine_name')
+        MedicineRecord.objects.filter(is_deleted=False, student__is_deleted=False).values('medicine_name')
         .annotate(total=Sum('quantity'))
         .order_by('-total')[:5]
     )
@@ -276,7 +276,7 @@ def reports(request):
     }
 
     context = {
-        'total_students': Student.objects.count(),
+        'total_students': Student.objects.filter(is_deleted=False).count(),
         'total_medicines': total_medicines,
         'total_dispensed': total_dispensed,
         'low_stock_count': len(low_stock_medicines),

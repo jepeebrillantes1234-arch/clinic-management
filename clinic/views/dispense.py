@@ -9,7 +9,7 @@ from clinic.models import Medicine, MedicineRecord, Student
 @login_required
 @role_required("admin", "nurse")
 def medicine_record_create(request, student_pk):
-    student = get_object_or_404(Student, pk=student_pk)
+    student = get_object_or_404(Student, pk=student_pk, is_deleted=False)
 
     if request.method == "POST":
         medicine_id = request.POST.get("medicine")
@@ -20,14 +20,14 @@ def medicine_record_create(request, student_pk):
         except ValueError:
             qty = 1
 
-        medicine = get_object_or_404(Medicine, pk=medicine_id)
+        medicine = get_object_or_404(Medicine, pk=medicine_id, is_deleted=False)
 
         if medicine.quantity_in_stock < qty:
             messages.error(
                 request,
                 f"Insufficient stock for {medicine.name}! Only {medicine.quantity_in_stock} {medicine.unit} left."
             )
-            medicines = Medicine.objects.filter(quantity_in_stock__gt=0).order_by("name")
+            medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
             return render(request, "clinic/medicines/medicine_record_form.html", {"student": student, "medicines": medicines})
 
         with transaction.atomic():
@@ -48,13 +48,13 @@ def medicine_record_create(request, student_pk):
         messages.success(request, f"Successfully recorded and deducted stock for {medicine.name}.")
         return redirect("student_views", pk=student.pk)
 
-    medicines = Medicine.objects.filter(quantity_in_stock__gt=0).order_by("name")
+    medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
     return render(request, "clinic/medicines/medicine_record_form.html", {"student": student, "medicines": medicines})
 
 @login_required
 @role_required("admin", "nurse")
 def medicine_record_edit(request, pk):
-    mr = get_object_or_404(MedicineRecord, pk=pk)
+    mr = get_object_or_404(MedicineRecord, pk=pk, is_deleted=False)
     if request.method == "POST":
         mr.medicine_name = request.POST["medicine_name"]
         mr.dosage = request.POST["dosage"]
@@ -67,11 +67,13 @@ def medicine_record_edit(request, pk):
     return render(request, "clinic/medicines/medicine_record_form.html", {"student": mr.student, "mr": mr})
 
 @login_required
+@role_required('admin')
 def medicine_record_delete(request, pk):
-    record = get_object_or_404(MedicineRecord, pk=pk)
+    record = get_object_or_404(MedicineRecord, pk=pk, is_deleted=False)
     student_pk = record.student.pk
     if request.method == 'POST':
-        record.delete()
-        messages.success(request, "Removed medicine record.")
+        record.is_deleted = True
+        record.save(update_fields=['is_deleted'])
+        messages.success(request, "Medicine record moved to Trash.")
         return redirect('student_views', pk=student_pk)
     return render(request, 'clinic/medicines/confirm_delete.html', {'object_name': 'Medicine Record'})

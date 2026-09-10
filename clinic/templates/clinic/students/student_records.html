@@ -461,25 +461,28 @@
     </div>
 </div>
     <!-- SEARCH & CONTROLS -->
-    <div class="cms-card p-3 mb-4">
-        <form method="get" class="row g-2 align-items-center m-0">
-            <div class="col-12 col-md-8 col-lg-6">
-                <div class="search-input-group">
-                    <i class="bi bi-search search-icon"></i>
-                    <input type="text" name="q" class="form-control cms-search-input"
-                        placeholder="Search student by name, ID number, or course..." value="{{ query|default:'' }}">
-                </div>
+<div class="cms-card p-3 mb-4">
+    <form method="get" class="row g-2 align-items-center m-0">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="search-input-group">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" 
+                       name="q" 
+                       class="form-control cms-search-input"
+                       placeholder="Search student by name, ID number, or course..." 
+                       value="{{ query|default:'' }}">
             </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-cms-primary">Search</button>
-            </div>
-            {% if query %}
-            <div class="col-auto">
-                <a href="{% url 'student_records' %}" class="btn btn-cms-filter">Clear</a>
-            </div>
-            {% endif %}
-        </form>
-    </div>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-cms-primary">Search</button>
+        </div>
+        {% if query %}
+        <div class="col-auto">
+            <a href="{% url 'student_records' %}" class="btn btn-cms-filter">Clear</a>
+        </div>
+        {% endif %}
+    </form>
+</div>
 
     <!-- MAIN STUDENT TABLE WRAPPER FOR LIVE UPDATES -->
     <div id="student-list-wrapper" class="">
@@ -601,23 +604,42 @@
     </div>
 </div>
 
-<!-- Real-time updates script -->
+<!-- Real-time live search script -->
 <script>
-    setInterval(function () {
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
+    const searchInput = document.querySelector('input[name="q"]');
+    let typingTimer;
+    let doneTypingInterval = 300; // Maghihintay ng 0.3 seconds pagkatapos mong mag-type bago maghanap
 
-                const newContent = doc.getElementById('student-list-wrapper');
-                const currentContent = document.getElementById('student-list-wrapper');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(typingTimer);
+            
+            typingTimer = setTimeout(function () {
+                let query = searchInput.value;
+                let currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.set('q', query);
 
-                if (newContent && currentContent) {
-                    currentContent.innerHTML = newContent.innerHTML;
-                }
-            })
-            .catch(error => console.log('Error updating student list:', error));
-    }, 4000);
+                // Kunin ang bagong data gamit ang fetch nang hindi nire-reload ang buong page
+                fetch(currentUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const newContent = doc.getElementById('student-list-wrapper');
+                    const currentContent = document.getElementById('student-list-wrapper');
+
+                    if (newContent && currentContent) {
+                        currentContent.innerHTML = newContent.innerHTML;
+                    }
+                })
+                .catch(error => console.log('Error updating student list:', error));
+            }, doneTypingInterval);
+        });
+    }
 </script>
 {% endblock %}

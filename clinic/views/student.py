@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine, MedicineRecord, Student, Nurse
@@ -10,19 +12,25 @@ from clinic.models import ActivityLog, Medicine, MedicineRecord, Student, Nurse
 @login_required
 @role_required("admin", "nurse")
 def student_records(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     
     if query:
-        students = Student.objects.filter(
-            Q(full_name__icontains=query) | Q(student_id__icontains=query)
-        )
+        # Idinagdag natin ang contact_number__icontains dito
+        students = Student.objects.filter(is_deleted=False).filter(
+            Q(student_id__icontains=query) |
+            Q(full_name__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(course__icontains=query) |
+            Q(contact_number__icontains=query)  # <--- BAGONG DAGDAG
+        ).distinct()
     else:
-        students = Student.objects.all()
+        students = Student.objects.filter(is_deleted=False)
 
-    total_students = Student.objects.count()
-    total_nurses = Nurse.objects.count()
-    total_medicine_stock = Medicine.objects.aggregate(total=Sum('quantity_in_stock'))['total'] or 0
-    total_dispensed = MedicineRecord.objects.aggregate(total=Sum('quantity'))['total'] or 0
+    total_students = Student.objects.filter(is_deleted=False).count()
+    total_nurses = Nurse.objects.filter(is_deleted=False).count()
+    total_medicine_stock = Medicine.objects.filter(is_deleted=False).aggregate(total=Sum('quantity_in_stock'))['total'] or 0
+    total_dispensed = MedicineRecord.objects.filter(is_deleted=False, student__is_deleted=False).aggregate(total=Sum('quantity'))['total'] or 0
 
     context = {
         'students': students,
@@ -37,8 +45,8 @@ def student_records(request):
 @login_required
 @role_required("admin", "nurse")
 def student_views(request, pk):
-    student = get_object_or_404(Student, pk=pk)
-    medicine_records = MedicineRecord.objects.filter(student=student).order_by("-date_released")
+    student = get_object_or_404(Student, pk=pk, is_deleted=False)
+    medicine_records = MedicineRecord.objects.filter(student=student, is_deleted=False).order_by("-date_released")
 
     return render(
         request,
@@ -124,13 +132,13 @@ def student_create(request):
             messages.error(request, f"May error sa pag-save: {str(e)}")
             return redirect("student_create")
 
-    medicines = Medicine.objects.filter(quantity_in_stock__gt=0).order_by("name")
+    medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
     return render(request, "clinic/students/student_create.html", {"medicines": medicines})
 
 @login_required
 @role_required("admin", "nurse")
 def student_edit(request, pk):
-    student = get_object_or_404(Student, pk=pk)
+    student = get_object_or_404(Student, pk=pk, is_deleted=False)
     
     if request.method == "POST":
         student.student_id = request.POST.get("student_id", "")
@@ -154,31 +162,22 @@ def student_edit(request, pk):
     return render(request, "clinic/students/student_create.html", {"student": student})
 
 @login_required
-@role_required("admin")
+@role_required("admin", "nurse")
+@require_POST
 def student_delete(request, pk):
-    student = get_object_or_404(Student, pk=pk)
-
-    is_nurse = False
-    if request.user.groups.filter(name__iexact='nurse').exists():
-        is_nurse = True
-    elif hasattr(request.user, 'role') and str(request.user.role).lower() == 'nurse':
-        is_nurse = True
-
-    if is_nurse:
-        messages.error(request, "Bawal mag-delete ang mga nurse.")
-        return redirect("student_views", pk=student.pk)
-
-    if request.method == "POST":
-        student.delete()
-        messages.success(request, "Natanggal ang student record.")
-        return redirect("student_records")
-
-    return render(
-        request,
-        "clinic/confirm_delete.html",
-        {
-            "object_name": student.full_name,
-            "cancel_url": "student_views",
-            "cancel_pk": student.pk,
-        }
+    student = get_object_or_404(Student, pk=pk, is_deleted=False)
+    student.is_deleted = True
+    student.deleted_at = timezone.now()
+    student.deleted_by = request.user
+    student.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
+    role = getattr(getattr(request.user, 'profile', None), 'role', 'unknown').title()
+    ActivityLog.objects.create(
+        user=request.user,
+        category='student',
+        action='Student moved to Recycle Bin',
+        details=student.full_name,
+        description=(f'{request.user.get_full_name() or request.user.username} ({role}) moved '
+                     f'{student.full_name} to the Recycle Bin.'),
     )
+    messages.success(request, "Student record moved to Recycle Bin.")
+    return redirect("student_records")

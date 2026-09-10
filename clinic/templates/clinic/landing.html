@@ -126,7 +126,7 @@
             filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
             animation: floatLogo 6s infinite ease-in-out;
         }
-
+       
         @keyframes floatLogo {
             0%, 100% { transform: translateY(0); }
             50%      { transform: translateY(-10px); }
@@ -201,10 +201,7 @@
             box-shadow: 0 6px 30px rgba(56, 189, 248, 0.4);
         }
 
-        /* ==================================================
-           GLASS CARD (Login view) — div.glass-card
-           Ito ang bubble/card na naglalaman ng buong login form
-           ================================================== */
+
         .glass-card {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(25px);
@@ -351,7 +348,6 @@
     <div class="bg-layer bg-night" id="bgNight"></div>
     <div class="stars-overlay" id="starsOverlay"></div>
 
-    <!-- 1. LANDING VIEW: Logo + Title + Time Badge + Login Button -->
     <main class="brand-wrapper">
         <img src="{% static 'clinic/img/me.png' %}" alt="ICE Logo" class="landing-logo">
         <h1 class="landing-title">ICE Clinic Management System</h1>

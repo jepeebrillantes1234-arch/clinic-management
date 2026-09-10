@@ -11,13 +11,13 @@ from clinic.models import Nurse
 @login_required
 @role_required("admin", "nurse")
 def nurse_list(request):
-    nurses = Nurse.objects.all().order_by("full_name")
+    nurses = Nurse.objects.filter(is_deleted=False).order_by("full_name")
     return render(request, "clinic/nurses/nurse_list.html", {"nurses": nurses})
 
 @login_required
 @role_required("admin", "nurse")
 def nurse_views(request, pk):
-    nurse = get_object_or_404(Nurse, pk=pk)
+    nurse = get_object_or_404(Nurse, pk=pk, is_deleted=False)
     return render(request, "clinic/nurses/nurse_views.html", {"nurse": nurse})
 
 @login_required
@@ -62,7 +62,7 @@ def nurse_add(request):
 @login_required
 @role_required("admin")
 def nurse_edit(request, pk):
-    nurse = get_object_or_404(Nurse, pk=pk)
+    nurse = get_object_or_404(Nurse, pk=pk, is_deleted=False)
     if request.method == 'POST':
         form = NurseForm(request.POST, request.FILES, instance=nurse)
         if form.is_valid():
@@ -103,9 +103,10 @@ def nurse_edit(request, pk):
 @login_required
 @role_required("admin")
 def nurse_delete(request, pk):
-    nurse = get_object_or_404(Nurse, pk=pk)
+    nurse = get_object_or_404(Nurse, pk=pk, is_deleted=False)
     if request.method == "POST":
-        nurse.delete()
-        messages.success(request, "Already Removed.")
+        nurse.is_deleted = True
+        nurse.save(update_fields=['is_deleted'])
+        messages.success(request, "Nurse record moved to Trash.")
         return redirect("nurse_list")
     return render(request, "clinic/nurses/nurse_confirm_delete.html", {"nurse": nurse})

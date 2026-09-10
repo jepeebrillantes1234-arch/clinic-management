@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+﻿from datetime import date, timedelta
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -56,6 +56,12 @@ class Student(models.Model):
     
     emergency_contact = models.CharField(max_length=100, help_text="Name and number")
     date_registered = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='students_moved_to_recycle_bin'
+    )
 
     def __str__(self):
         return f"{self.student_id} - {self.full_name}"
@@ -73,6 +79,7 @@ class Medicine(models.Model):
     low_stock_threshold = models.PositiveIntegerField(default=10)
     image = models.ImageField(upload_to='medicines/', blank=True, null=True, help_text="Upload an image of the medicine")
     date_added = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} ({self.quantity_in_stock} {self.unit})"
@@ -101,6 +108,7 @@ class MedicineRecord(models.Model):
     prescription = models.TextField(blank=True, null=True)
     dispensed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date_released = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         med_name = self.medicine.name if self.medicine else (self.medicine_name or "Unknown Medicine")
@@ -120,6 +128,7 @@ class Nurse(models.Model):
     email = models.EmailField(blank=True)
     schedule = models.CharField(max_length=150, blank=True, help_text="hal. Mon-Fri, 8AM-5PM (Time of Duty)")
     date_added = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.full_name
@@ -173,6 +182,7 @@ class ActivityLog(models.Model):
     # ---------------------------------
     
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-timestamp']
@@ -185,6 +195,9 @@ class DispenseRecord(models.Model):
     medicine = models.ForeignKey('Medicine', on_delete=models.CASCADE)
     quantity_dispensed = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.quantity_dispensed} dispensed"
+
+

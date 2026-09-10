@@ -1,4 +1,4 @@
-from django.urls import path
+﻿from django.urls import path
 from . import views
 
 urlpatterns = [
@@ -44,4 +44,14 @@ urlpatterns = [
     path('activities/', views.activity_log_list, name='activity_log_list'),
     path('activities/delete-selected/', views.delete_selected_activities, name='delete_selected_activities'),
     path('activities/delete-all/', views.delete_all_activities, name='delete_all_activities'),
+
+    # Recycle Bin (admin only); /trash/ remains for legacy links.
+    path('recycle-bin/', views.trash_list, name='trash_list'),
+    path('trash/', views.trash_list, name='trash_legacy'),
+    path('recycle-bin/<str:record_type>/<int:pk>/move/', views.move_to_trash, name='move_to_trash'),
+    path('recycle-bin/<str:record_type>/<int:pk>/restore/', views.restore_from_trash, name='restore_from_trash'),
+    path('recycle-bin/<str:record_type>/<int:pk>/permanently-delete/', views.permanently_delete, name='permanently_delete'),
+    path('recycle-bin/permanently-delete-selected/', views.permanently_delete_selected, name='permanently_delete_selected'),
+    path('recycle-bin/restore-selected/', views.restore_selected, name='restore_selected'),
 ]
+

@@ -1,0 +1,67 @@
+﻿{% extends "clinic/base.html" %}
+{% block title %}Recycle Bin{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+      <h2 class="mb-1"><i class="bi bi-recycle text-success"></i> Recycle Bin</h2>
+      <p class="text-muted mb-0">Restore records or permanently remove selected records.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}"><i class="bi bi-arrow-left"></i> Dashboard</a>
+  </div>
+  <form method="get" class="mb-3">
+    <div class="input-group" style="max-width: 520px;"><span class="input-group-text"><i
+          class="bi bi-search"></i></span><input class="form-control" name="q" value="{{ query }}"
+        placeholder="Search Recycle Bin records"><button class="btn btn-primary">Search</button>{% if query %}<a
+        class="btn btn-outline-secondary" href="{% url 'trash_list' %}">Clear</a>{% endif %}</div>
+  </form>
+  <form method="post" action="{% url 'permanently_delete_selected' %}" id="bulkDeleteForm">{% csrf_token %}
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2"><label
+            class="fw-semibold"><input type="checkbox" id="selectAll"> Select all</label><button
+            class="btn btn-danger btn-sm" type="submit"><i class="bi bi-trash3-fill"></i> Permanently Delete
+            Selected</button></div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Record type</th>
+                <th>Record</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in records %}<tr>
+                <td><input class="record-check" type="checkbox" name="records" value="{{ record.type }}:{{ record.pk }}"
+                    aria-label="Select {{ record.name }}"></td>
+                <td><span class="badge text-bg-secondary">{{ record.label }}</span></td>
+                <td>{{ record.name }}</td>
+                <td class="text-end"><button class="btn btn-success btn-sm"
+                    form="restore-{{ record.type }}-{{ record.pk }}"><i class="bi bi-arrow-counterclockwise"></i>
+                    Restore</button> <button class="btn btn-outline-danger btn-sm"
+                    form="delete-{{ record.type }}-{{ record.pk }}"><i class="bi bi-trash3"></i> Delete
+                    Permanently</button></td>
+              </tr>
+              {% empty %}<tr>
+                <td colspan="4" class="text-center text-muted py-5"><i
+                    class="bi bi-recycle fs-2 d-block mb-2"></i>Recycle Bin is empty.</td>
+              </tr>{% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% for record in records %}<form id="restore-{{ record.type }}-{{ record.pk }}" method="post"
+    action="{% url 'restore_from_trash' record.type record.pk %}">{% csrf_token %}</form>
+  <form id="delete-{{ record.type }}-{{ record.pk }}" method="post"
+    action="{% url 'permanently_delete' record.type record.pk %}"
+    onsubmit="return confirm('Are you sure you want to permanently delete this record? This action cannot be undone.');">
+    {% csrf_token %}</form>{% endfor %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.getElementById('selectAll')?.addEventListener('change', function () { document.querySelectorAll('.record-check').forEach(box => box.checked = this.checked) }); document.getElementById('bulkDeleteForm')?.addEventListener('submit', function (event) { if (!document.querySelector('.record-check:checked') || !confirm('Are you sure you want to permanently delete the selected record(s)? This action cannot be undone.')) event.preventDefault() });</script>
+{% endblock %}

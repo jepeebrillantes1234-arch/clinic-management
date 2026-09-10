@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
-
+from django.db import IntegrityError
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine
 
@@ -12,12 +12,13 @@ from clinic.models import ActivityLog, Medicine
 @role_required("admin", "nurse")
 def medicine_list(request):
     query = request.GET.get("q", "").strip()
-    medicines = Medicine.objects.all().order_by("name")
+    medicines = Medicine.objects.filter(is_deleted=False).order_by("name")
     if query:
         medicines = medicines.filter(
             models.Q(name__icontains=query) | models.Q(category__icontains=query)
         )
     return render(request, "clinic/medicines/medicine_list.html", {"medicines": medicines, "query": query})
+
 
 @login_required
 @role_required("admin", "nurse")
@@ -38,37 +39,45 @@ def medicine_create(request):
             low_stock_threshold = 10
 
         expiration_date = request.POST.get("expiration_date")
-        
-        # 1. KUNIN MUNA ANG IMAGE MULA SA request.FILES DITO:
         medicine_image = request.FILES.get("image")
         
-        medicine = Medicine.objects.create(
-            name=med_name,
-            category=category,
-            quantity_in_stock=quantity_in_stock,
-            unit=unit,
-            expiration_date=expiration_date if expiration_date else None,
-            low_stock_threshold=low_stock_threshold,
-            image=medicine_image  # 2. GAMITIN ANG TAMANG VARIABLE NA YAN DITO
-        )
-        
-        ActivityLog.objects.create(
-            user=request.user,
-            category='medicine',
-            action="Medicine Added",
-            details=f"New medicine added: {med_name} ({quantity_in_stock} {unit})",
-            description=f"Bagong gamot na '{med_name}' na may daming {quantity_in_stock} {unit} ang idinagdag sa inventory ni {request.user.username}."
-        )
+        try:
+            # Subukan nating i-save sa database
+            medicine = Medicine.objects.create(
+                name=med_name,
+                category=category,
+                quantity_in_stock=quantity_in_stock,
+                unit=unit,
+                expiration_date=expiration_date if expiration_date else None,
+                low_stock_threshold=low_stock_threshold,
+                image=medicine_image
+            )
+            
+            ActivityLog.objects.create(
+                user=request.user,
+                category='medicine',
+                action="Medicine Added",
+                details=f"New medicine added: {med_name} ({quantity_in_stock} {unit})",
+                description=f"Bagong gamot na '{med_name}' na may daming {quantity_in_stock} {unit} ang idinagdag sa inventory ni {request.user.username}."
+            )
 
-        messages.success(request, f"The medicine '{med_name}' has been successfully added to the inventory.")
-        return redirect("medicine_list")
+            messages.success(request, f"The medicine '{med_name}' has been successfully added to the inventory.")
+            return redirect("medicine_list")
+            
+        except IntegrityError:
+            # Kung nag-error dahil kapangalan na, saluhin natin dito at balaan ang user
+            messages.error(request, f"The medicine name '{med_name}' is already taken. Please use a different name.")
+            return render(request, "clinic/medicines/medicine_form.html", {
+                # Pwede mong ibalik ang mga in-input para hindi na nila ulit i-type lahat
+                'old_values': request.POST 
+            })
         
     return render(request, "clinic/medicines/medicine_form.html")
 
 @login_required
 @role_required("admin", "nurse")
 def medicine_edit(request, pk):
-    medicine = get_object_or_404(Medicine, pk=pk)
+    medicine = get_object_or_404(Medicine, pk=pk, is_deleted=False)
 
     if request.method == "POST":
         medicine.name = request.POST.get("name", medicine.name).strip()
@@ -100,10 +109,11 @@ def medicine_edit(request, pk):
 @login_required
 @role_required("admin")
 def medicine_delete(request, pk):
-    medicine = get_object_or_404(Medicine, pk=pk)
+    medicine = get_object_or_404(Medicine, pk=pk, is_deleted=False)
     if request.method == "POST":
-        medicine.delete()
-        messages.success(request, "Medicine record deleted.")
+        medicine.is_deleted = True
+        medicine.save(update_fields=['is_deleted'])
+        messages.success(request, "Medicine record moved to Trash.")
         return redirect("medicine_list")
     return render(
         request,

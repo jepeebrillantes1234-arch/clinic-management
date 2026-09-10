@@ -1,4 +1,4 @@
-{% extends "clinic/base.html" %}
+﻿{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}Medicine Inventory - Clinic Management System{% endblock %}
@@ -371,9 +371,9 @@
                             {% endif %}
                         </td>
                         <td class="fw-bold">{{ m.name }}</td>
-                        <td class="text-muted">{{ m.category|default:"—" }}</td>
+                        <td class="text-muted">{{ m.category|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
                         <td class="fw-semibold">{{ m.quantity_in_stock }} {{ m.unit }}</td>
-                        <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"—" }}</td>
+                        <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
                         <td>
                             {% if m.is_low_stock %}
                             <span class="badge-status badge-danger"><i class="bi bi-exclamation-circle-fill"></i> Low
@@ -420,10 +420,10 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
 
-        <h3 class="confirm-modal-title">Delete Medicine Record?</h3>
+        <h3 class="confirm-modal-title">Move Medicine Record to Recycle Bin?</h3>
         
         <div class="confirm-modal-desc mb-0">
-            This action cannot be undone. You are about to permanently remove:
+            This record will be moved to the Recycle Bin and can be restored by an admin.
         </div>
         
         <div>
@@ -440,7 +440,7 @@
             <form id="deleteForm" method="POST" style="display: inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn-modal btn-delete-modal">
-                    <i class="bi bi-trash-fill"></i> Yes, Delete Medicine
+                    <i class="bi bi-trash-fill"></i> Yes, Move to Recycle Bin
                 </button>
             </form>
         </div>

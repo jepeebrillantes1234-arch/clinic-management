@@ -1,4 +1,4 @@
-{% extends "clinic/base.html" %}
+﻿{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}{{ nurse.full_name }} - Profile{% endblock %}
@@ -383,15 +383,15 @@
             <div class="info-list text-start mb-4 shadow-sm">
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-telephone text-primary"></i> Contact Number</span>
-                    <span class="info-value">{{ nurse.contact_number|default:"—" }}</span>
+                    <span class="info-value">{{ nurse.contact_number|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-envelope text-primary"></i> Email Address</span>
-                    <span class="info-value">{{ nurse.email|default:"—" }}</span>
+                    <span class="info-value">{{ nurse.email|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-clock-history text-primary"></i> Duty Schedule</span>
-                    <span class="info-value">{{ nurse.schedule|default:"—" }}</span>
+                    <span class="info-value">{{ nurse.schedule|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
                 </div>
             </div>
 
@@ -429,16 +429,16 @@
         </div>
 
         <!-- Title & Information -->
-        <h3 class="confirm-modal-title" id="modalTitle">Delete Record?</h3>
+        <h3 class="confirm-modal-title" id="modalTitle">Move Record to Recycle Bin?</h3>
         
         <div class="confirm-modal-text">
-            This action cannot be undone. You are about to permanently remove:
+            This record will be moved to the Recycle Bin and can be restored by an admin.
             <br>
             <span class="object-highlight">{{ nurse.full_name }}</span>
             
             <div class="warning-subtext">
                 <i class="bi bi-info-circle-fill"></i>
-                The selected record will be permanently deleted from the database.
+                The selected record will be moved to the Recycle Bin.
             </div>
         </div>
 
@@ -452,7 +452,7 @@
 
             <button type="submit" class="btn-modal btn-delete" id="submitDeleteBtn">
                 <i class="bi bi-trash3-fill" id="btnIcon"></i>
-                <span id="btnText">Yes, Delete Record</span>
+                <span id="btnText">Yes, Move to Recycle Bin</span>
             </button>
         </form>
 
