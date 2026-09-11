@@ -1,67 +1,50 @@
 ﻿{% extends "clinic/base.html" %}
 {% block title %}Recycle Bin{% endblock %}
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-    <div>
-      <h2 class="mb-1"><i class="bi bi-recycle text-success"></i> Recycle Bin</h2>
-      <p class="text-muted mb-0">Restore records or permanently remove selected records.</p>
-    </div>
-    <a class="btn btn-outline-secondary" href="{% url 'dashboard' %}"><i class="bi bi-arrow-left"></i> Dashboard</a>
+<style>
+:root { --rb-radius:18px; }
+[data-bs-theme="light"] { --rb-card:#fff; --rb-border:#e2e8f0; --rb-text:#0f172a; --rb-muted:#64748b; --rb-soft:#f8fafc; --rb-hero:linear-gradient(135deg,rgba(37,99,235,.09),rgba(6,182,212,.06)); }
+[data-bs-theme="dark"] { --rb-card:rgba(30,41,59,.72); --rb-border:rgba(255,255,255,.1); --rb-text:#f8fafc; --rb-muted:#94a3b8; --rb-soft:rgba(15,23,42,.7); --rb-hero:rgba(30,41,59,.72); }
+.recycle-bin { color:var(--rb-text); font-family:Inter,system-ui,sans-serif; }
+.rb-card { background:var(--rb-card); border:1px solid var(--rb-border); border-radius:var(--rb-radius); box-shadow:0 4px 20px rgba(15,23,42,.06); }
+.rb-hero { background:var(--rb-hero); border:1px solid var(--rb-border); border-radius:var(--rb-radius); padding:1.75rem 2rem; }
+.rb-icon { width:60px;height:60px;border-radius:16px;display:grid;place-items:center;background:rgba(37,99,235,.12);color:#2563eb;font-size:1.7rem; }
+.rb-label { color:var(--rb-muted);font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase; }
+.rb-value { font-size:1.6rem;font-weight:800;line-height:1.15; }
+.rb-input,.rb-select { background:var(--rb-card);color:var(--rb-text);border:1px solid var(--rb-border);border-radius:10px;min-height:42px; }
+.rb-input:focus,.rb-select:focus { background:var(--rb-card);color:var(--rb-text);border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.15); }
+.rb-table th { background:var(--rb-soft);color:var(--rb-muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap; }
+.rb-table td,.rb-table th { padding:1rem 1.15rem;border-color:var(--rb-border);vertical-align:middle; }
+.type-badge { background:rgba(37,99,235,.11);color:#2563eb;border-radius:999px;padding:.3rem .6rem;font-size:.75rem;font-weight:700; }
+.status-badge { background:rgba(245,158,11,.12);color:#d97706;border-radius:999px;padding:.3rem .6rem;font-size:.75rem;font-weight:700; }
+.btn-restore { background:linear-gradient(135deg,#059669,#10b981);border:0;color:#fff; }
+.rb-mobile-card { border-bottom:1px solid var(--rb-border);padding:1rem; }
+.rb-mobile-card:last-child { border-bottom:0; }
+.modal-backdrop-rb { position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;place-items:center;padding:1rem;z-index:2000; }
+.modal-backdrop-rb.open { display:grid; }
+.rb-modal { width:min(430px,100%);padding:1.5rem; }
+@media(max-width:767px){ .rb-hero{padding:1.25rem}.rb-actions{width:100%}.rb-actions button{flex:1}.filter-actions{flex-direction:column}.filter-actions>*{width:100%} }
+</style>
+<section class="recycle-bin">
+  <div class="rb-hero mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3"><div class="rb-icon"><i class="bi bi-recycle"></i></div><div><div class="rb-label mb-1">Record recovery</div><h1 class="h3 fw-bold mb-1">Recycle Bin <span class="badge rounded-pill text-bg-secondary fs-6">{{ counts.total }}</span></h1><p class="mb-0" style="color:var(--rb-muted)">Review, restore, or securely remove deleted records.</p></div></div>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Dashboard</a>
   </div>
-  <form method="get" class="mb-3">
-    <div class="input-group" style="max-width: 520px;"><span class="input-group-text"><i
-          class="bi bi-search"></i></span><input class="form-control" name="q" value="{{ query }}"
-        placeholder="Search Recycle Bin records"><button class="btn btn-primary">Search</button>{% if query %}<a
-        class="btn btn-outline-secondary" href="{% url 'trash_list' %}">Clear</a>{% endif %}</div>
-  </form>
-  <form method="post" action="{% url 'permanently_delete_selected' %}" id="bulkDeleteForm">{% csrf_token %}
-    <div class="card shadow-sm border-0">
-      <div class="card-body p-0">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2"><label
-            class="fw-semibold"><input type="checkbox" id="selectAll"> Select all</label><button
-            class="btn btn-danger btn-sm" type="submit"><i class="bi bi-trash3-fill"></i> Permanently Delete
-            Selected</button></div>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Record type</th>
-                <th>Record</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for record in records %}<tr>
-                <td><input class="record-check" type="checkbox" name="records" value="{{ record.type }}:{{ record.pk }}"
-                    aria-label="Select {{ record.name }}"></td>
-                <td><span class="badge text-bg-secondary">{{ record.label }}</span></td>
-                <td>{{ record.name }}</td>
-                <td class="text-end"><button class="btn btn-success btn-sm"
-                    form="restore-{{ record.type }}-{{ record.pk }}"><i class="bi bi-arrow-counterclockwise"></i>
-                    Restore</button> <button class="btn btn-outline-danger btn-sm"
-                    form="delete-{{ record.type }}-{{ record.pk }}"><i class="bi bi-trash3"></i> Delete
-                    Permanently</button></td>
-              </tr>
-              {% empty %}<tr>
-                <td colspan="4" class="text-center text-muted py-5"><i
-                    class="bi bi-recycle fs-2 d-block mb-2"></i>Recycle Bin is empty.</td>
-              </tr>{% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </form>
-  {% for record in records %}<form id="restore-{{ record.type }}-{{ record.pk }}" method="post"
-    action="{% url 'restore_from_trash' record.type record.pk %}">{% csrf_token %}</form>
-  <form id="delete-{{ record.type }}-{{ record.pk }}" method="post"
-    action="{% url 'permanently_delete' record.type record.pk %}"
-    onsubmit="return confirm('Are you sure you want to permanently delete this record? This action cannot be undone.');">
-    {% csrf_token %}</form>{% endfor %}
-</div>
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3"><div class="rb-card p-3"><div class="rb-label">Total deleted items</div><div class="rb-value">{{ counts.total }}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="rb-card p-3"><div class="rb-label">Students</div><div class="rb-value">{{ counts.students }}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="rb-card p-3"><div class="rb-label">Medicines</div><div class="rb-value">{{ counts.medicines }}</div></div></div>
+    <div class="col-12 col-sm-6 col-xl-3"><div class="rb-card p-3"><div class="rb-label">Other records</div><div class="rb-value">{{ counts.other }}</div></div></div>
+  </div>
+  <div class="rb-card p-3 mb-4"><form method="get" class="row g-2"><div class="col-12 col-lg-5"><input class="form-control rb-input" name="q" value="{{ query }}" placeholder="Search deleted records"></div><div class="col-12 col-sm-5 col-lg-3"><select class="form-select rb-select" name="type"><option value="">All record types</option>{% for value,label in record_types %}<option value="{{ value }}" {% if selected_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div><div class="col-12 col-sm-4 col-lg-2"><input class="form-control rb-input" type="date" name="date" value="{{ selected_date }}"></div><div class="col-12 col-sm-3 col-lg-2 d-flex gap-2 filter-actions"><button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Filter</button><a href="{% url 'trash_list' %}" class="btn btn-outline-secondary">Clear</a></div></form></div>
+  <div class="rb-card overflow-hidden">
+    <div class="d-none d-md-block table-responsive"><table class="table rb-table mb-0"><thead><tr><th>Record</th><th>Type</th><th>Deleted by</th><th>Deleted date</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>{% for record in records %}<tr id="record-{{ record.type }}-{{ record.pk }}"><td class="fw-semibold">{{ record.name }}</td><td><span class="type-badge">{{ record.label }}</span></td><td>{{ record.deleted_by_name }}</td><td>{{ record.deleted_at|date:"M d, Y - g:i A"|default:"Not recorded" }}</td><td><span class="status-badge">In Recycle Bin</span></td><td class="text-end"><button class="btn btn-restore btn-sm" data-action="restore" data-form="restore-{{ record.type }}-{{ record.pk }}"><i class="bi bi-arrow-counterclockwise"></i> Restore</button> <button class="btn btn-outline-danger btn-sm" data-action="delete" data-form="delete-{{ record.type }}-{{ record.pk }}"><i class="bi bi-trash3"></i> Delete Permanently</button></td></tr>{% empty %}<tr><td colspan="6" class="text-center py-5" style="color:var(--rb-muted)"><i class="bi bi-recycle display-6 d-block mb-2"></i><strong>Recycle Bin is empty.</strong><div class="small mt-1">Deleted records will appear here.</div></td></tr>{% endfor %}</tbody></table></div>
+    <div class="d-md-none">{% for record in records %}<article class="rb-mobile-card" id="mobile-record-{{ record.type }}-{{ record.pk }}"><div class="d-flex justify-content-between gap-2"><strong>{{ record.name }}</strong><span class="type-badge">{{ record.label }}</span></div><div class="small mt-2" style="color:var(--rb-muted)"><div><i class="bi bi-person"></i> {{ record.deleted_by_name }}</div><div><i class="bi bi-clock"></i> {{ record.deleted_at|date:"M d, Y - g:i A"|default:"Not recorded" }}</div></div><div class="d-grid gap-2 mt-3"><button class="btn btn-restore" data-action="restore" data-form="restore-{{ record.type }}-{{ record.pk }}">Restore</button><button class="btn btn-outline-danger" data-action="delete" data-form="delete-{{ record.type }}-{{ record.pk }}">Delete Permanently</button></div></article>{% empty %}<div class="text-center py-5" style="color:var(--rb-muted)"><i class="bi bi-recycle display-6 d-block mb-2"></i><strong>Recycle Bin is empty.</strong></div>{% endfor %}</div>
+  </div>
+  {% for record in records %}<form id="restore-{{ record.type }}-{{ record.pk }}" method="post" action="{% url 'restore_from_trash' record.type record.pk %}" class="d-none">{% csrf_token %}</form><form id="delete-{{ record.type }}-{{ record.pk }}" method="post" action="{% url 'permanently_delete' record.type record.pk %}" class="d-none">{% csrf_token %}</form>{% endfor %}
+</section>
+<div class="modal-backdrop-rb" id="confirmModal" role="dialog" aria-modal="true"><div class="rb-card rb-modal"><div id="confirmIcon" class="rb-icon mb-3"><i class="bi bi-arrow-counterclockwise"></i></div><h2 class="h5 fw-bold" id="confirmTitle">Restore record?</h2><p id="confirmText" style="color:var(--rb-muted)">The record will be returned to the active list.</p><p id="warningText" class="text-danger fw-semibold small d-none">This action cannot be undone.</p><div class="d-flex justify-content-end gap-2"><button class="btn btn-outline-secondary" id="cancelConfirm">Cancel</button><button class="btn btn-primary" id="confirmButton">Confirm</button></div></div></div>
 {% endblock %}
-{% block extra_js %}
-<script>document.getElementById('selectAll')?.addEventListener('change', function () { document.querySelectorAll('.record-check').forEach(box => box.checked = this.checked) }); document.getElementById('bulkDeleteForm')?.addEventListener('submit', function (event) { if (!document.querySelector('.record-check:checked') || !confirm('Are you sure you want to permanently delete the selected record(s)? This action cannot be undone.')) event.preventDefault() });</script>
-{% endblock %}
+{% block extra_js %}<script>
+(() => { const modal=document.getElementById('confirmModal'), title=document.getElementById('confirmTitle'), text=document.getElementById('confirmText'), warning=document.getElementById('warningText'), confirm=document.getElementById('confirmButton'); let form; document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{ form=document.getElementById(button.dataset.form); const permanent=button.dataset.action==='delete'; title.textContent=permanent?'Delete permanently?':'Restore record?'; text.textContent=permanent?'This record will be permanently removed.':'The record will be returned to the active list.'; warning.classList.toggle('d-none',!permanent); confirm.className=permanent?'btn btn-danger':'btn btn-primary'; confirm.textContent=permanent?'Delete Permanently':'Restore'; modal.classList.add('open'); })); document.getElementById('cancelConfirm').onclick=()=>modal.classList.remove('open'); confirm.onclick=()=>form?.submit(); modal.onclick=e=>{if(e.target===modal) modal.classList.remove('open')}; })();
+</script>{% endblock %}

@@ -1,4 +1,4 @@
-﻿from datetime import date, timedelta
+from datetime import date, timedelta
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
@@ -12,7 +12,8 @@ from django.utils import timezone
 class Profile(models.Model):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
-        ('nurse', 'Nurse'),
+        # Stored value remains 'nurse' to keep existing accounts and permissions working.
+        ('nurse', 'Assistant'),
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
@@ -80,6 +81,8 @@ class Medicine(models.Model):
     image = models.ImageField(upload_to='medicines/', blank=True, null=True, help_text="Upload an image of the medicine")
     date_added = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='medicines_moved_to_recycle_bin')
 
     def __str__(self):
         return f"{self.name} ({self.quantity_in_stock} {self.unit})"
@@ -109,6 +112,8 @@ class MedicineRecord(models.Model):
     dispensed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     date_released = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='medicine_records_moved_to_recycle_bin')
 
     def __str__(self):
         med_name = self.medicine.name if self.medicine else (self.medicine_name or "Unknown Medicine")
@@ -129,6 +134,8 @@ class Nurse(models.Model):
     schedule = models.CharField(max_length=150, blank=True, help_text="hal. Mon-Fri, 8AM-5PM (Time of Duty)")
     date_added = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assistants_moved_to_recycle_bin')
 
     def __str__(self):
         return self.full_name
@@ -152,6 +159,10 @@ class PasswordResetCode(models.Model):
 
 class LoginActivity(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='login_activities')
+    role = models.CharField(max_length=20, blank=True)
+    module = models.CharField(max_length=50, blank=True)
+    status = models.CharField(max_length=20, default='success')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
 
@@ -166,7 +177,8 @@ class ActivityLog(models.Model):
     ICON_CHOICES = [
         ('student', 'Student'),
         ('medicine', 'Medicine'),
-        ('nurse', 'Nurse'),
+        # Stored value remains 'nurse' to keep existing accounts and permissions working.
+        ('nurse', 'Assistant'),
         ('details', 'Description'),
         ('dispense', 'Dispense'),
         ('other', 'Other'),
@@ -181,8 +193,14 @@ class ActivityLog(models.Model):
     description = models.TextField(blank=True, null=True, help_text="Kumpletong detalye ng aktibidad")
     # ---------------------------------
     
+    role = models.CharField(max_length=20, blank=True)
+    module = models.CharField(max_length=50, blank=True)
+    status = models.CharField(max_length=20, default='success')
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='activity_logs_moved_to_recycle_bin')
 
     class Meta:
         ordering = ['-timestamp']
@@ -190,12 +208,31 @@ class ActivityLog(models.Model):
     def __str__(self):
         return f"{self.action} - {self.timestamp:%Y-%m-%d %H:%M}"
     
+class Notification(models.Model):
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clinic_notifications')
+    title = models.CharField(max_length=150, default='Notification')
+    message = models.TextField()
+    notification_type = models.CharField(max_length=30, default='system')
+    module = models.CharField(max_length=50, blank=True)
+    related_object_id = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.title} - {self.recipient.username}'
+
+
 class DispenseRecord(models.Model):
     # Palitan o idagdag ang mga fields ayon sa inyong database structure
     medicine = models.ForeignKey('Medicine', on_delete=models.CASCADE)
     quantity_dispensed = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='dispense_records_moved_to_recycle_bin')
     
     def __str__(self):
         return f"{self.quantity_dispensed} dispensed"

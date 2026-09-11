@@ -1,4 +1,4 @@
-﻿{% extends "clinic/base.html" %}
+{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}{{ nurse.full_name }} - Profile{% endblock %}
@@ -356,7 +356,7 @@
         <!-- Header Banner -->
         <div class="profile-header-bg d-flex align-items-center justify-content-between px-4">
             <h4 class="text-white fw-bold m-0 fs-5">
-                <i class="bi bi-person-badge me-2"></i>Nurse Profile
+                <i class="bi bi-person-badge me-2"></i>Assistant Profile
             </h4>
             <span class="badge bg-light text-dark fw-semibold">ICE Clinic</span>
         </div>
@@ -376,22 +376,22 @@
             <!-- Name and Title -->
             <h3 class="fw-bold profile-name mb-1">{{ nurse.full_name }}</h3>
             <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-semibold mb-4">
-                <i class="bi bi-heart-pulse-fill me-1"></i>{{ nurse.position|default:"Clinic Nurse" }}
+                <i class="bi bi-heart-pulse-fill me-1"></i>{{ nurse.position|default:"Clinic Assistant" }}
             </span>
 
             <!-- Detailed Information Box -->
             <div class="info-list text-start mb-4 shadow-sm">
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-telephone text-primary"></i> Contact Number</span>
-                    <span class="info-value">{{ nurse.contact_number|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value">{{ nurse.contact_number|default:"Ã¢â‚¬â€" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-envelope text-primary"></i> Email Address</span>
-                    <span class="info-value">{{ nurse.email|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value">{{ nurse.email|default:"Ã¢â‚¬â€" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-clock-history text-primary"></i> Duty Schedule</span>
-                    <span class="info-value">{{ nurse.schedule|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value">{{ nurse.schedule|default:"Ã¢â‚¬â€" }}</span>
                 </div>
             </div>
 
@@ -410,7 +410,7 @@
             <!-- Back Link -->
             <div class="mt-4">
                 <a href="{% url 'nurse_list' %}" class="text-decoration-none text-secondary small fw-semibold d-inline-flex align-items-center gap-1">
-                    <i class="bi bi-arrow-left"></i> Back to Nurses List
+                    <i class="bi bi-arrow-left"></i> Back to Assistants List
                 </a>
             </div>
         </div>

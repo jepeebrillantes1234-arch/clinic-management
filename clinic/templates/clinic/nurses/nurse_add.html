@@ -198,8 +198,8 @@
         <div class="d-flex align-items-center gap-3">
             <i class="bi bi-person-gear fs-3"></i>
             <div>
-                <h2>{{ title|default:"MANAGE NURSE PROFILE" }}</h2>
-                <p>Fill out the form below to save nurse details.</p>
+                <h2>{{ title|default:"MANAGE ASSISTANT PROFILE" }}</h2>
+                <p>Fill out the form below to save assistant details.</p>
             </div>
         </div>
         <span class="badge bg-light text-dark fw-semibold px-3 py-2">ICE Clinic</span>
@@ -222,7 +222,7 @@
                         <img src="" alt="Preview" class="form-avatar-img d-none" id="avatarPreview">
                     {% endif %}
                 </div>
-                <small class="text-muted d-block fw-semibold" style="color: var(--nav-text) !important;">Nurse Profile Photo</small>
+                <small class="text-muted d-block fw-semibold" style="color: var(--nav-text) !important;">Assistant Profile Photo</small>
             </div>
 
             <!-- Dynamic Django Form Fields -->
@@ -252,7 +252,7 @@
             <!-- Action Buttons -->
             <div class="d-flex gap-2 mt-4 pt-3 border-top form-action-group" style="border-color: var(--sidebar-border) !important;">
                 <button type="submit" class="btn btn-save-nurse flex-grow-1 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-check-lg fs-5"></i> Save Nurse Profile
+                    <i class="bi bi-check-lg fs-5"></i> Save Assistant Profile
                 </button>
             <a href="{% url 'nurse_list' %}" class="btn btn-cancel-custom d-flex align-items-center justify-content-center">
                 Cancel

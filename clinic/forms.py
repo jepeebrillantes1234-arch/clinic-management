@@ -23,7 +23,7 @@ class NurseForm(forms.ModelForm):
         widgets = {
         'full_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Buong pangalan'}),
         'age': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Edad'}),
-        'position': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'hal. School Nurse'}),
+        'position': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'hal. Clinic Assistant'}),
         'contact_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '09XXXXXXXXX'}),
         'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}),
         'schedule': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'hal. Mon-Fri, 8AM-5PM'}),

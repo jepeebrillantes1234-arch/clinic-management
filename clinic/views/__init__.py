@@ -5,3 +5,5 @@ from .nurse import *
 from .dispense import *
 
 from .trash import *
+
+from .notifications import *

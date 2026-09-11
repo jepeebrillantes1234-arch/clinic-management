@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 from django.contrib import messages
 from django.contrib.auth import login, logout
@@ -63,6 +63,8 @@ def dashboard(request):
     }
 
     return render(request, 'clinic/dashboard.html', context)
+    
+
 
 class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'clinic/auth/settings.html'
@@ -198,20 +200,23 @@ def login_activity(request):
 @role_required('admin')
 def activity_log_list(request):
     query = request.GET.get('q', '').strip()
+    role_filter = request.GET.get('role', '').strip()
+    action_filter = request.GET.get('action', '').strip()
+    date_filter = request.GET.get('date', '').strip()
     activities = ActivityLog.objects.filter(is_deleted=False).select_related('user').order_by('-timestamp')
-
     if query:
-        activities = activities.filter(
-            models.Q(action__icontains=query) |
-            models.Q(details__icontains=query) |
-            models.Q(description__icontains=query) |
-            models.Q(user__username__icontains=query)
-        )
-
-    return render(request, "clinic/auth/activity_log_list.html", {
-        "activities": activities[:150],
-        "query": query,
-    })
+        activities = activities.filter(models.Q(action__icontains=query) | models.Q(details__icontains=query) | models.Q(description__icontains=query) | models.Q(user__username__icontains=query))
+    if role_filter:
+        activities = activities.filter(role__iexact=role_filter)
+    if action_filter:
+        activities = activities.filter(action__icontains=action_filter)
+    if date_filter == 'today':
+        activities = activities.filter(timestamp__date=datetime.today().date())
+    elif date_filter == 'last7':
+        activities = activities.filter(timestamp__gte=datetime.now() - timedelta(days=7))
+    elif date_filter == 'last30':
+        activities = activities.filter(timestamp__gte=datetime.now() - timedelta(days=30))
+    return render(request, 'clinic/auth/activity_log_list.html', {'activities': activities[:150], 'query': query, 'selected_role': role_filter, 'selected_action': action_filter, 'selected_date': date_filter})
 
 @login_required
 @role_required('admin')

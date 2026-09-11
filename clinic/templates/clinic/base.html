@@ -73,7 +73,8 @@
             background: var(--shell-bg);
             color: var(--text-primary);
             overflow-x: hidden;
-            touch-action: pan-y; /* Pinapayagan ang normal na scroll pero pwede i-detect ang swiping */
+            touch-action: pan-y;
+            /* Pinapayagan ang normal na scroll pero pwede i-detect ang swiping */
         }
 
         /* ===== SIDEBAR (NO ANIMATION / INSTANT) ===== */
@@ -103,7 +104,7 @@
             justify-content: space-between;
             gap: 0.75rem;
             border-bottom: 1px solid var(--sidebar-border);
-            white-space: nowrap;
+            white-space: normal;
         }
 
         .brand-text {
@@ -217,67 +218,67 @@
         }
 
         @media (min-width: 992px) {
-    body.sidebar-collapsed #appSidebar {
-        width: var(--sidebar-collapsed-width);
-        min-width: var(--sidebar-collapsed-width);
-    }
+            body.sidebar-collapsed #appSidebar {
+                width: var(--sidebar-collapsed-width);
+                min-width: var(--sidebar-collapsed-width);
+            }
 
-    body.sidebar-collapsed .brand-text,
-    body.sidebar-collapsed .nav-item-link span,
-    body.sidebar-collapsed .user-info-text,
-    body.sidebar-collapsed .nav-badge {
-        display: none !important;
-    }
+            body.sidebar-collapsed .brand-text,
+            body.sidebar-collapsed .nav-item-link span,
+            body.sidebar-collapsed .user-info-text,
+            body.sidebar-collapsed .nav-badge {
+                display: none !important;
+            }
 
-    body.sidebar-collapsed .sidebar-header-glass {
-        justify-content: center;
-        padding: 1.2rem 0.5rem;
-    }
+            body.sidebar-collapsed .sidebar-header-glass {
+                justify-content: center;
+                padding: 1.2rem 0.5rem;
+            }
 
-    body.sidebar-collapsed .brand-logo-container {
-        display: flex !important;
-        justify-content: center;
-        width: 100%;
-        cursor: pointer;
-    }
+            body.sidebar-collapsed .brand-logo-container {
+                display: flex !important;
+                justify-content: center;
+                width: 100%;
+                cursor: pointer;
+            }
 
-    body.sidebar-collapsed .brand-logo-container img {
-        margin: 0 auto;
-    }
+            body.sidebar-collapsed .brand-logo-container img {
+                margin: 0 auto;
+            }
 
-    body.sidebar-collapsed .sidebar-header-glass #toggleSidebarDesktopBtn {
-        display: none !important;
-    }
+            body.sidebar-collapsed .sidebar-header-glass #toggleSidebarDesktopBtn {
+                display: none !important;
+            }
 
-    body:not(.sidebar-collapsed) #toggleSidebarDesktopBtn {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
+            body:not(.sidebar-collapsed) #toggleSidebarDesktopBtn {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
 
-    body.sidebar-collapsed .nav-item-link {
-        justify-content: center;
-        padding: 0.75rem 0;
-        margin-bottom: 0.5rem;
-    }
+            body.sidebar-collapsed .nav-item-link {
+                justify-content: center;
+                padding: 0.75rem 0;
+                margin-bottom: 0.5rem;
+            }
 
-    body.sidebar-collapsed .sidebar-toggle-btn i {
-        transform: rotate(180deg);
-    }
+            body.sidebar-collapsed .sidebar-toggle-btn i {
+                transform: rotate(180deg);
+            }
 
-    body.sidebar-collapsed .user-profile-card {
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding-top: 0.75rem;
-        gap: 0.75rem;
-    }
+            body.sidebar-collapsed .user-profile-card {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding-top: 0.75rem;
+                gap: 0.75rem;
+            }
 
-    body.sidebar-collapsed .main-container {
-        margin-left: var(--sidebar-collapsed-width);
-        width: calc(100% - var(--sidebar-collapsed-width));
-    }
-}
+            body.sidebar-collapsed .main-container {
+                margin-left: var(--sidebar-collapsed-width);
+                width: calc(100% - var(--sidebar-collapsed-width));
+            }
+        }
 
         /* ===== MAIN CONTAINER ===== */
         .main-container {
@@ -327,12 +328,14 @@
         /* Responsive Breakpoints & Mobile Sidebar Display */
         @media (max-width: 991.98px) {
             #appSidebar {
-                display: none; /* Instant hide kapag mobile para walang animation lag */
+                display: none;
+                /* Instant hide kapag mobile para walang animation lag */
                 width: var(--sidebar-width) !important;
             }
 
             #appSidebar.show {
-                display: flex !important; /* Instant show kapag binuksan */
+                display: flex !important;
+                /* Instant show kapag binuksan */
             }
 
             #sidebarOverlay.show {
@@ -374,13 +377,33 @@
             color: #000000 !important;
         }
 
-        .toast-container-custom {
+       .toast-container-custom {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 9999;
             max-width: 400px;
             width: 100%;
+        }
+
+        /* Notification dropdown items */
+        .notification-item {
+            display: block;
+            padding: 10px 12px;
+            color: #e5e5e5;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            white-space: normal;
+            word-wrap: break-word;
+            cursor: pointer;
+        }
+        .notification-item:hover {
+            background-color: rgba(255,255,255,0.06);
+            color: #ffffff;
+        }
+        .notification-item.unread {
+            background-color: rgba(59,130,246,0.08);
+            border-left: 3px solid #3b82f6;
         }
     </style>
 
@@ -420,12 +443,11 @@
                         <i class="bi bi-grid-fill"></i>
                         <span>Dashboard</span>
                     </a>
+                    {% if user.is_authenticated and user.profile.role == 'admin' %}
                     <a href="{% url 'nurse_list' %}"
                         class="nav-item-link {% if request.resolver_match.url_name == 'nurse_list' or request.resolver_match.url_name == 'nurse_detail' %}active{% endif %}"
-                        title="Nurses">
-                        <i class="bi bi-person-badge-fill"></i>
-                        <span>Nurses</span>
-                    </a>
+                        title="Assistants"><i class="bi bi-person-badge-fill"></i><span>Assistants</span></a>
+                    {% endif %}
                     <a href="{% url 'student_records' %}"
                         class="nav-item-link {% if request.resolver_match.url_name == 'student_records' %}active{% endif %}"
                         title="Students">
@@ -439,13 +461,17 @@
                         <span>Medicines</span>
                     </a>
                     {% if user.is_authenticated and user.profile.role == 'admin' %}
-                    <a href="{% url 'trash_list' %}" class="nav-item-link {% if request.resolver_match.url_name == 'trash_list' or request.resolver_match.url_name == 'trash_legacy' %}active{% endif %}" title="Recycle Bin">
+                    <a href="{% url 'trash_list' %}"
+                        class="nav-item-link {% if request.resolver_match.url_name == 'trash_list' or request.resolver_match.url_name == 'trash_legacy' %}active{% endif %}"
+                        title="Recycle Bin">
                         <i class="bi bi-recycle"></i><span>Recycle Bin</span>
                     </a>
-                    <a href="{% url 'activity_log_list' %}" class="nav-item-link {% if request.resolver_match.url_name == 'activity_log_list' %}active{% endif %}" title="Activity Logs">
+                    <a href="{% url 'activity_log_list' %}"
+                        class="nav-item-link {% if request.resolver_match.url_name == 'activity_log_list' %}active{% endif %}"
+                        title="Activity Logs">
                         <i class="bi bi-clipboard-data-fill"></i><span>Activity Logs</span>
                     </a>
-                    {% endif %}                    <a href="{% url 'reports' %}"
+                    {% endif %} <a href="{% url 'reports' %}"
                         class="nav-item-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
                         title="Reports">
                         <i class="bi bi-file-earmark-bar-graph-fill"></i>
@@ -464,7 +490,40 @@
                 </a>
                 {% endif %}
 
-                <a href="{% url 'settings' %}"
+                <div class="dropdown mb-2">
+                    <button class="nav-item-link w-100 border-0 text-start" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false" title="Notifications">
+                        <i class="bi bi-bell-fill"></i><span>Notifications</span>
+                        {% if nav_unread_notification_count %}<span class="badge rounded-pill bg-danger ms-auto">{{
+                            nav_unread_notification_count }}</span>{% endif %}
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-dark shadow p-0"
+                        style="width: min(360px, calc(100vw - 2rem)); max-height: 420px; overflow-y: auto;">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                            <strong>Notifications</strong>
+                            <form method="post" action="{% url 'mark_all_notifications_read' %}">{% csrf_token %}<input
+                                    type="hidden" name="next" value="{{ request.path }}"><button
+                                    class="btn btn-link btn-sm p-0">Mark all as read</button></form>
+                                               </div>
+                        {% for notification in nav_notifications %}
+                        <form method="post" action="{% url 'mark_notification_read' notification.pk %}" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <button type="submit"
+                                class="notification-item w-100 text-start border-0 bg-transparent {% if not notification.is_read %}unread{% endif %}">
+                                <div class="d-flex gap-2">
+                                    <i class="bi bi-{% if notification.object_type == 'medicine' %}capsule{% elif notification.object_type == 'student' %}person{% else %}bell{% endif %}-fill text-info"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="small">{{ notification.message }}</div>
+                                        <div class="small text-body-secondary mt-1">{{ notification.created_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </form>
+                        {% empty %}<div class="text-center text-body-secondary p-4 small"><i
+                                class="bi bi-bell-slash d-block fs-4 mb-2"></i>No notifications yet.</div>{% endfor %}
+                    </div>
+                </div> <a href="{% url 'settings' %}"
                     class="nav-item-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
                     style="margin-bottom: 0.75rem;" title="Settings">
                     <i class="bi bi-gear-fill"></i>

@@ -7,6 +7,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db import IntegrityError
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine
+from clinic.services import create_activity_log, notify_admins, user_role
+from django.utils import timezone
+
+
 
 @login_required
 @role_required("admin", "nurse")
@@ -52,14 +56,10 @@ def medicine_create(request):
                 low_stock_threshold=low_stock_threshold,
                 image=medicine_image
             )
-            
-            ActivityLog.objects.create(
-                user=request.user,
-                category='medicine',
-                action="Medicine Added",
-                details=f"New medicine added: {med_name} ({quantity_in_stock} {unit})",
-                description=f"Bagong gamot na '{med_name}' na may daming {quantity_in_stock} {unit} ang idinagdag sa inventory ni {request.user.username}."
-            )
+            role = user_role(request.user)
+            create_activity_log(user=request.user, action='Added Medicine', module='Medicine', affected_record=medicine.name, description=f'{role} added a new medicine: {medicine.name}.', request=request, category='medicine')
+            if request.user.profile.role == 'nurse':
+                notify_admins(title='New Medicine Added', message=f'Assistant added {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
 
             messages.success(request, f"The medicine '{med_name}' has been successfully added to the inventory.")
             return redirect("medicine_list")
@@ -101,19 +101,29 @@ def medicine_edit(request, pk):
             medicine.image = request.FILES["image"]
 
         medicine.save()
+        role = user_role(request.user)
+        create_activity_log(user=request.user, action='Updated Medicine', module='Medicine', affected_record=medicine.name, description=f'{role} updated medicine: {medicine.name}.', request=request, category='medicine')
+        if request.user.profile.role == 'nurse':
+            notify_admins(title='Medicine Updated', message=f'Assistant updated {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
         messages.success(request, f"The medicine '{medicine.name}' has been successfully updated.")
         return redirect("medicine_list")
 
     return render(request, "clinic/medicines/medicine_form.html", {"medicine": medicine})
 
 @login_required
-@role_required("admin")
+@role_required("admin", "nurse")
 def medicine_delete(request, pk):
     medicine = get_object_or_404(Medicine, pk=pk, is_deleted=False)
     if request.method == "POST":
         medicine.is_deleted = True
-        medicine.save(update_fields=['is_deleted'])
-        messages.success(request, "Medicine record moved to Trash.")
+        medicine.deleted_at = timezone.now()
+        medicine.deleted_by = request.user
+        medicine.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
+        role = user_role(request.user)
+        create_activity_log(user=request.user, action='Moved Medicine to Recycle Bin', module='Recycle Bin', affected_record=medicine.name, description=f'{role} moved {medicine.name} to the Recycle Bin.', request=request, category='medicine')
+        if request.user.profile.role == 'nurse':
+            notify_admins(title='Record Moved to Recycle Bin', message=f'Assistant moved medicine {medicine.name} to the Recycle Bin.', notification_type='recycle_bin', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
+        messages.success(request, "Successfully moved to Recycle Bin.")
         return redirect("medicine_list")
     return render(
         request,

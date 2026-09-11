@@ -9,6 +9,8 @@ from django.views.decorators.http import require_POST
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine, MedicineRecord, Student, Nurse
 
+
+
 @login_required
 @role_required("admin", "nurse")
 def student_records(request):

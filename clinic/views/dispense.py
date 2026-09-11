@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from clinic.decorators import role_required
 from clinic.models import Medicine, MedicineRecord, Student
@@ -67,13 +68,15 @@ def medicine_record_edit(request, pk):
     return render(request, "clinic/medicines/medicine_record_form.html", {"student": mr.student, "mr": mr})
 
 @login_required
-@role_required('admin')
+@role_required('admin', 'nurse')
 def medicine_record_delete(request, pk):
     record = get_object_or_404(MedicineRecord, pk=pk, is_deleted=False)
     student_pk = record.student.pk
     if request.method == 'POST':
         record.is_deleted = True
-        record.save(update_fields=['is_deleted'])
-        messages.success(request, "Medicine record moved to Trash.")
+        record.deleted_at = timezone.now()
+        record.deleted_by = request.user
+        record.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
+        messages.success(request, "Successfully moved to Recycle Bin.")
         return redirect('student_views', pk=student_pk)
     return render(request, 'clinic/medicines/confirm_delete.html', {'object_name': 'Medicine Record'})

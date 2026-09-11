@@ -1,7 +1,7 @@
 {% extends "clinic/base.html" %}
 {% load static %}
 
-{% block title %}Nurses Directory - Clinic Management System{% endblock %}
+{% block title %}Assistants Directory - Clinic Management System{% endblock %}
 
 {% block content %}
 <!-- External Dependencies -->
@@ -249,12 +249,12 @@
             <div class="hero-badge">
                 <i class="bi bi-heart-pulse-fill"></i> International Colleges for Excellence, Inc. • Health Portal
             </div>
-            <h1 class="hero-title">Nurses Directory</h1>
+            <h1 class="hero-title">Assistants Directory</h1>
             <p class="hero-subtitle">Manage and view registered medical staff profiles and contact records.</p>
         </div>
         <div class="d-flex align-items-center gap-3">
             <a href="{% url 'nurse_add' %}" class="btn-cms-primary">
-                <i class="bi bi-plus-lg"></i> Add Nurse
+                <i class="bi bi-plus-lg"></i> Add Assistant
             </a>
             <div class="logo-box d-none d-sm-flex">
                <img src="{% static 'clinic/img/cliniclogo.png' %}" alt="Clinic Logo" class="img-fluid" style="max-height: 100%;">
@@ -277,7 +277,7 @@
                 {% endif %}
                 
                 <h6 class="nurse-name">{{ nurse.full_name }}</h6>
-                <span class="nurse-badge">{{ nurse.position|default:"Clinic Nurse" }}</span>
+                <span class="nurse-badge">{{ nurse.position|default:"Clinic Assistant" }}</span>
                 
                 {% if nurse.contact_number %}
                     <div class="contact-info">
@@ -296,10 +296,10 @@
         <div class="empty-icon-wrapper">
             <img src="{% static 'clinic/img/cliniclogo.png' %}" alt="Clinic Logo" class="img-fluid" style="max-height: 500px;">
         </div>
-        <h5 class="fw-bold mb-1">No Nurse Profiles Found</h5>
+        <h5 class="fw-bold mb-1">No Assistant Profiles Found</h5>
         <p class="text-muted fs-6 mb-4">Get started by creating the first medical staff profile.</p>
         <a href="{% url 'nurse_add' %}" class="btn-cms-primary">
-            <i class="bi bi-plus-lg me-1"></i> Add New Nurse
+            <i class="bi bi-plus-lg me-1"></i> Add New Assistant
         </a>
     </div>
     {% endif %}
