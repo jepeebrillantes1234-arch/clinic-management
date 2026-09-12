@@ -8,7 +8,7 @@
     <title>{% block title %}Clinic Management System{% endblock %}</title>
 
     <!-- PWA (Progressive Web App) Mobile Meta Tags -->
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="manifest" href="{% static 'clinic/manifest.json' %}">
     <meta name="theme-color" content="#0b1329">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -680,7 +680,7 @@
 
             // Register Service Worker for PWA installation support
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register("{% static 'sw.js' %}")
+                navigator.serviceWorker.register("{% static 'clinic/service-worker.js' %}")
                     .then(function (reg) {
                         console.log('Service Worker registered successfully:', reg.scope);
                     })

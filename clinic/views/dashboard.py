@@ -10,7 +10,7 @@ from django.contrib.auth.views import PasswordChangeView
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import Count, Sum
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_exempt
 
@@ -153,7 +153,7 @@ def forgot_password_verify(request):
             user_id=user_id, code=code
         ).order_by('-created_at').first()
 
-        if reset_code and (hasattr(reset_code, 'is_valid') and reset_code.is_valid() or True):
+        if reset_code and reset_code.is_valid():
             user = reset_code.user
             user.set_password(new_password)
             user.save()
