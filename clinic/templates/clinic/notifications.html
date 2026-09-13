@@ -1,0 +1,307 @@
+{% extends 'clinic/base.html' %}
+{% block extra_css %}
+<style>
+    /* ===== RESPONSIVE NOTIFICATION PAGE ===== */
+    .notif-hero {
+        background: linear-gradient(135deg, #0f3569 0%, #1e40af 100%);
+    }
+
+    .notif-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    @media (max-width: 575.98px) {
+        .notif-hero {
+            padding: 1.25rem !important;
+        }
+        .notif-hero h1 {
+            font-size: 1.25rem;
+        }
+        .notif-hero p {
+            font-size: 0.85rem;
+        }
+    }
+
+    /* Filter card */
+    .notif-filter-card .form-label {
+        color: var(--text-primary, inherit);
+    }
+
+    /* Action buttons row */
+    .notif-actions-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    @media (max-width: 575.98px) {
+        .notif-actions-row {
+            flex-direction: column;
+        }
+        .notif-actions-row form,
+        .notif-actions-row button {
+            width: 100%;
+        }
+        .notif-actions-row button {
+            justify-content: center;
+        }
+    }
+
+    /* Notification card/row - responsive rebuild */
+    .notification-row {
+        display: flex;
+        gap: 0.85rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--row-border, rgba(0,0,0,0.08));
+        align-items: flex-start;
+        transition: background-color 0.15s ease;
+    }
+
+    .notification-row:hover {
+        background-color: rgba(37, 99, 235, 0.04);
+    }
+
+    .notif-checkbox-wrap {
+        flex-shrink: 0;
+        padding-top: 0.15rem;
+    }
+
+    .notif-row-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.05rem;
+    }
+
+    .notif-row-body {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .notif-row-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .notif-row-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        word-break: break-word;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .notif-row-time {
+        font-size: 0.78rem;
+        color: var(--text-secondary, #64748B);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .notif-row-message {
+        margin-top: 0.35rem;
+        font-size: 0.88rem;
+        line-height: 1.5;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    .notif-row-meta {
+        font-size: 0.78rem;
+        color: var(--text-secondary, #64748B);
+        margin-top: 0.5rem;
+        word-break: break-word;
+    }
+
+    .notif-row-action {
+        flex-shrink: 0;
+        align-self: flex-start;
+    }
+
+    /* Mobile stacking: put checkbox+icon+title in one line, message below, action button full width */
+    @media (max-width: 575.98px) {
+        .notification-row {
+            flex-wrap: wrap;
+            padding: 0.85rem;
+        }
+
+        .notif-row-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 0.95rem;
+        }
+
+        .notif-row-title {
+            font-size: 0.88rem;
+        }
+
+        .notif-row-time {
+            width: 100%;
+            margin-top: 0.15rem;
+        }
+
+        .notif-row-message {
+            font-size: 0.85rem;
+        }
+
+        .notif-row-action {
+            width: 100%;
+            margin-top: 0.6rem;
+        }
+
+        .notif-row-action button {
+            width: 100%;
+        }
+    }
+
+    [data-bs-theme="dark"] .notification-row {
+        border-bottom-color: rgba(255,255,255,0.06);
+    }
+    [data-bs-theme="dark"] .notification-row:hover {
+        background-color: rgba(56, 189, 248, 0.06);
+    }
+    [data-bs-theme="dark"] .notif-row-time,
+    [data-bs-theme="dark"] .notif-row-meta {
+        color: #94A3B8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+
+    <section class="notif-hero p-4 rounded-4 text-white mb-4">
+        <h1 class="fw-bold mb-1"><i class="bi bi-bell-fill me-2"></i>Notifications</h1>
+        <p class="mb-0">View and manage all system notifications and alerts.</p>
+    </section>
+
+    <section class="card notif-filter-card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label small fw-semibold">Search notifications</label>
+                    <input class="form-control" name="q" value="{{ query }}" placeholder="Search notifications...">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-semibold">Type</label>
+                    <select class="form-select" name="type">
+                        <option value="">All Notifications</option>
+                        <option value="student" {% if selected_type == 'student' %}selected{% endif %}>Student</option>
+                        <option value="medicine" {% if selected_type == 'medicine' %}selected{% endif %}>Medicine</option>
+                        <option value="assistant" {% if selected_type == 'assistant' %}selected{% endif %}>Assistant</option>
+                        <option value="system" {% if selected_type == 'system' %}selected{% endif %}>System</option>
+                        <option value="recycle_bin" {% if selected_type == 'recycle_bin' %}selected{% endif %}>Recycle Bin</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-semibold">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="">All</option>
+                        <option value="unread" {% if selected_status == 'unread' %}selected{% endif %}>Unread</option>
+                        <option value="read" {% if selected_status == 'read' %}selected{% endif %}>Read</option>
+                    </select>
+                </div>
+                <div class="col-8 col-md-2">
+                    <label class="form-label small fw-semibold">Date</label>
+                    <select class="form-select" name="date">
+                        <option value="">All dates</option>
+                        <option value="today" {% if selected_date == 'today' %}selected{% endif %}>Today</option>
+                        <option value="yesterday" {% if selected_date == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                        <option value="last7" {% if selected_date == 'last7' %}selected{% endif %}>Last 7 days</option>
+                        <option value="last30" {% if selected_date == 'last30' %}selected{% endif %}>Last 30 days</option>
+                    </select>
+                </div>
+                <div class="col-4 col-md-2">
+                    <button class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <div class="notif-actions-row mb-3">
+        <form method="post" action="{% url 'mark_all_notifications_read' %}" class="m-0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn btn-outline-primary"><i class="bi bi-check2-all me-1"></i>Mark All as Read</button>
+        </form>
+        <button class="btn btn-outline-danger" form="notification-selection"><i class="bi bi-trash me-1"></i>Delete Selected</button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#clearNotificationsModal">Clear All</button>
+    </div>
+
+    <form id="notification-selection" method="post" action="{% url 'delete_selected_notifications' %}"
+        class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+        {% for notification in notifications %}
+        <div class="notification-row {% if not notification.is_read %}bg-primary-subtle{% endif %}">
+            <div class="notif-checkbox-wrap">
+                <input class="form-check-input" type="checkbox" name="notification_ids" value="{{ notification.pk }}">
+            </div>
+
+            <div class="notif-row-icon bg-primary-subtle text-primary">
+                <i class="bi bi-{% if notification.notification_type == 'medicine' %}capsule{% elif notification.notification_type == 'student' %}person{% elif notification.notification_type == 'recycle_bin' %}recycle{% elif notification.notification_type == 'assistant' %}person-badge{% else %}bell{% endif %}-fill"></i>
+            </div>
+
+            <div class="notif-row-body">
+                <div class="notif-row-top">
+                    <div class="notif-row-title">
+                        {% if not notification.is_read %}<span class="badge rounded-pill text-bg-primary">New</span>{% endif %}
+                        {{ notification.title }}
+                    </div>
+                    <div class="notif-row-time">{{ notification.created_at|date:'M d, Y • g:i A' }}</div>
+                </div>
+
+                <div class="notif-row-message">{{ notification.message }}</div>
+
+                <div class="notif-row-meta">
+                    Type: {{ notification.notification_type|title }}
+                    {% if notification.triggered_by %} • Performed by: {{ notification.triggered_by.get_full_name|default:notification.triggered_by.username }}{% endif %}
+                    {% if notification.module %} • {{ notification.module }}{% endif %}
+                </div>
+            </div>
+
+            {% if not notification.is_read %}
+            <div class="notif-row-action">
+                <button class="btn btn-sm btn-outline-primary" type="submit"
+                    formaction="{% url 'mark_notification_read' notification.pk %}">Mark read</button>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center text-secondary p-5">
+            <i class="bi bi-bell-slash fs-2 d-block mb-2"></i>No notifications match your filters.
+        </div>
+        {% endfor %}
+    </form>
+
+    <div class="modal fade" id="clearNotificationsModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Clear all notifications?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">This permanently removes all of your notifications and cannot be undone.</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{% url 'clear_all_notifications' %}" class="m-0">
+                        {% csrf_token %}
+                        <button class="btn btn-danger">Clear All</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -87,7 +87,7 @@ def restore_from_trash(request, record_type, pk):
         record.is_deleted, record.deleted_at, record.deleted_by = False, None, None
         record.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
         create_activity_log(user=request.user, action='Restored record', module='Recycle Bin', affected_record=str(record), description=f'{user_role(request.user)} restored {record} from the Recycle Bin.', request=request)
-        notify_admins(title='Record Restored', message=f'Admin restored {record} from the Recycle Bin.', notification_type='recycle_bin', module=label, related_object_id=record.pk, exclude_user=request.user)
+        notify_admins(title='Record Restored', message=f'Admin restored {record} from the Recycle Bin.', notification_type='recycle_bin', module=label, related_object_id=record.pk, exclude_user=request.user, triggered_by=request.user)
         messages.success(request, 'Record successfully restored.')
     return redirect('trash_list')
 
@@ -102,7 +102,7 @@ def permanently_delete(request, record_type, pk):
     else:
         record_name = str(record)
         create_activity_log(user=request.user, action='Permanently deleted record', module='Recycle Bin', affected_record=record_name, description=f'{user_role(request.user)} permanently deleted {record_name}.', request=request)
-        notify_admins(title='Record Permanently Deleted', message=f'Admin permanently deleted {record_name}.', notification_type='recycle_bin', module=label, related_object_id=record.pk, exclude_user=request.user)
+        notify_admins(title='Record Permanently Deleted', message=f'Admin permanently deleted {record_name}.', notification_type='recycle_bin', module=label, related_object_id=record.pk, exclude_user=request.user, triggered_by=request.user)
         record.delete()
         messages.success(request, 'Record permanently deleted.')
     return redirect('trash_list')

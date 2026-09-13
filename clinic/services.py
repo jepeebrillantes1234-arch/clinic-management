@@ -23,10 +23,12 @@ def create_activity_log(*, user=None, action, module, description='', affected_r
     )
 
 
-def notify_admins(*, title, message, notification_type='system', module='', related_object_id=None, exclude_user=None):
+def notify_admins(*, title, message, notification_type='system', module='', related_object_id=None,
+                  exclude_user=None, triggered_by=None):
     admins = User.objects.filter(profile__role='admin', is_active=True)
     if exclude_user:
         admins = admins.exclude(pk=exclude_user.pk)
     return [Notification.objects.create(recipient=admin, title=title, message=message,
-            notification_type=notification_type, module=module, related_object_id=related_object_id)
+            notification_type=notification_type, module=module, related_object_id=related_object_id,
+            triggered_by=triggered_by)
             for admin in admins]

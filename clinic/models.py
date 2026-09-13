@@ -209,6 +209,10 @@ class ActivityLog(models.Model):
     
 class Notification(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clinic_notifications')
+    triggered_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='triggered_clinic_notifications'
+    )
     title = models.CharField(max_length=150, default='Notification')
     message = models.TextField()
     notification_type = models.CharField(max_length=30, default='system')

@@ -1,13 +1,13 @@
-from django.contrib import messages
+from django.contrib import messages 
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
-
+from django.contrib.auth.models import User
 from clinic.decorators import role_required
-from clinic.models import ActivityLog, Medicine, MedicineRecord, Student, Nurse
+from clinic.models import ActivityLog, Medicine, MedicineRecord, Notification, Student, Nurse
 
 
 
@@ -98,6 +98,7 @@ def student_create(request):
                     section=request.POST.get("section", ""),
                     emergency_contact=request.POST["emergency_contact"],
                 )
+                
 
                 if medicine_id:
                     medicine = get_object_or_404(Medicine, pk=medicine_id)
@@ -121,11 +122,24 @@ def student_create(request):
                     )
                
                 ActivityLog.objects.create(
+                    
                     user=request.user,
                     action="Student Added",  
                     details=f"New student registered: {full_name}",
                     description=f"Student {full_name} was added to records by {request.user.get_full_name() or request.user.username}."
                 )
+                for admin in User.objects.filter(profile__role='admin'):
+                    Notification.objects.create(
+                        recipient=admin,
+                        title="Student Added",
+                        message=f"{request.user.username} added a new student: {full_name}.",
+                        notification_type='student',
+                        module='Student Records',
+                        triggered_by=request.user,
+                        related_object_id=student.pk,
+                    )
+                
+                    
             
             messages.success(request, f"Successfully added student: {full_name}")
             return redirect("student_records") 
@@ -159,8 +173,19 @@ def student_edit(request, pk):
         
         student.save()
         messages.success(request, "Na-update ang impormasyon ng student.")
+
+        for admin in User.objects.filter(profile__role='admin'):
+            Notification.objects.create(
+                recipient=admin,
+                title="Student Updated",
+                message=f"{request.user.username} updated the record of {student.full_name}.",
+                notification_type='student',
+                module='Student Records',
+                triggered_by=request.user,
+                related_object_id=student.pk,
+            )
+
         return redirect("student_views", pk=student.pk)
-        
     return render(request, "clinic/students/student_create.html", {"student": student})
 
 @login_required
@@ -174,6 +199,7 @@ def student_delete(request, pk):
     student.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
     role = getattr(getattr(request.user, 'profile', None), 'role', 'unknown').title()
     ActivityLog.objects.create(
+        
         user=request.user,
         category='student',
         action='Student moved to Recycle Bin',
@@ -181,5 +207,15 @@ def student_delete(request, pk):
         description=(f'{request.user.get_full_name() or request.user.username} ({role}) moved '
                      f'{student.full_name} to the Recycle Bin.'),
     )
+    for admin in User.objects.filter(profile__role='admin'):
+        Notification.objects.create(
+            recipient=admin,
+            title="Student Moved to Recycle Bin",
+            message=f"{request.user.username} moved {student.full_name} to the Recycle Bin.",
+            notification_type='student',
+            module='Student Records',
+            triggered_by=request.user,
+            related_object_id=student.pk,
+        )
     messages.success(request, "Student record moved to Recycle Bin.")
     return redirect("student_records")

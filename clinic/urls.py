@@ -46,8 +46,11 @@ urlpatterns = [
     path('activities/delete-all/', views.delete_all_activities, name='delete_all_activities'),
 
     # User-scoped notifications
+    path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/<int:pk>/read/', views.mark_notification_read, name='mark_notification_read'),
     path('notifications/read-all/', views.mark_all_notifications_read, name='mark_all_notifications_read'),
+    path('notifications/delete-selected/', views.delete_selected_notifications, name='delete_selected_notifications'),
+    path('notifications/clear-all/', views.clear_all_notifications, name='clear_all_notifications'),
     path('notifications/status/', views.notification_status, name='notification_status'),
     
     # Recycle Bin (admin only); /trash/ remains for legacy links.

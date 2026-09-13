@@ -57,7 +57,7 @@ def medicine_create(request):
             role = user_role(request.user)
             create_activity_log(user=request.user, action='Added Medicine', module='Medicine', affected_record=medicine.name, description=f'{role} added a new medicine: {medicine.name}.', request=request, category='medicine')
             if request.user.profile.role == 'nurse':
-                notify_admins(title='New Medicine Added', message=f'Assistant added {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
+                notify_admins(title='New Medicine Added', message=f'Assistant added {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user, triggered_by=request.user)
 
             messages.success(request, f"The medicine '{med_name}' has been successfully added to the inventory.")
             return redirect("medicine_list")
@@ -102,7 +102,7 @@ def medicine_edit(request, pk):
         role = user_role(request.user)
         create_activity_log(user=request.user, action='Updated Medicine', module='Medicine', affected_record=medicine.name, description=f'{role} updated medicine: {medicine.name}.', request=request, category='medicine')
         if request.user.profile.role == 'nurse':
-            notify_admins(title='Medicine Updated', message=f'Assistant updated {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
+            notify_admins(title='Medicine Updated', message=f'Assistant updated {medicine.name}.', notification_type='medicine', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user, triggered_by=request.user)
         messages.success(request, f"The medicine '{medicine.name}' has been successfully updated.")
         return redirect("medicine_list")
 
@@ -120,7 +120,7 @@ def medicine_delete(request, pk):
         role = user_role(request.user)
         create_activity_log(user=request.user, action='Moved Medicine to Recycle Bin', module='Recycle Bin', affected_record=medicine.name, description=f'{role} moved {medicine.name} to the Recycle Bin.', request=request, category='medicine')
         if request.user.profile.role == 'nurse':
-            notify_admins(title='Record Moved to Recycle Bin', message=f'Assistant moved medicine {medicine.name} to the Recycle Bin.', notification_type='recycle_bin', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user)
+            notify_admins(title='Record Moved to Recycle Bin', message=f'Assistant moved medicine {medicine.name} to the Recycle Bin.', notification_type='recycle_bin', module='Medicine', related_object_id=medicine.pk, exclude_user=request.user, triggered_by=request.user)
         messages.success(request, "Successfully moved to Recycle Bin.")
         return redirect("medicine_list")
     return render(

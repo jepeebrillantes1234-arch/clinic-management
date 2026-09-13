@@ -405,6 +405,159 @@
             background-color: rgba(59,130,246,0.08);
             border-left: 3px solid #3b82f6;
         }
+                /* ===== NOTIFICATION SLIDE-IN PANEL ===== */
+        .notif-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+        }
+        .notif-overlay.show { display: block; }
+
+        .notif-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 400px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--sidebar-bg);
+            border-left: 1px solid var(--sidebar-border);
+            z-index: 3010;
+            display: flex;
+            flex-direction: column;
+            transition: right 0.25s ease;
+            box-shadow: -8px 0 24px rgba(0,0,0,0.35);
+        }
+        .notif-panel.show { right: 0; }
+
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 1.25rem;
+            border-bottom: 1px solid var(--sidebar-border);
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .notif-panel-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0.75rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--glow-blue) transparent;
+        }
+        .notif-panel-body::-webkit-scrollbar { width: 6px; }
+        .notif-panel-body::-webkit-scrollbar-thumb {
+            background: var(--glow-blue);
+            border-radius: 10px;
+        }
+        .notif-panel-body::-webkit-scrollbar-track { background: transparent; }
+
+        .notif-group-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--nav-text);
+            padding: 0.75rem 0.5rem 0.35rem;
+        }
+
+        .notif-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            width: 100%;
+            text-align: left;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.5rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .notif-card:hover { background: rgba(56, 189, 248, 0.1); }
+        .notif-card.unread {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .notif-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .notif-content { flex-grow: 1; min-width: 0; }
+
+        .notif-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.35;
+        }
+
+        .notif-message {
+            font-size: 0.83rem;
+            color: var(--nav-text);
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.4;
+            margin-top: 0.15rem;
+        }
+
+        .notif-time {
+            font-size: 0.75rem;
+            color: var(--nav-text);
+            margin-top: 0.35rem;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            flex-shrink: 0;
+            margin-top: 0.4rem;
+        }
+
+        .notif-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--nav-text);
+        }
+        .notif-empty i { font-size: 2rem; display: block; margin-bottom: 0.75rem; }
+
+        .notif-panel-footer {
+            flex-shrink: 0;
+            padding: 0.75rem;
+            border-top: 1px solid var(--sidebar-border);
+            text-align: center;
+        }
+        .notif-panel-footer a {
+            font-size: 0.85rem;
+            color: var(--glow-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .notif-panel-footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .notif-panel { width: 100vw; max-width: 100vw; right: -100vw; }
+        }
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -443,11 +596,17 @@
                         <i class="bi bi-grid-fill"></i>
                         <span>Dashboard</span>
                     </a>
-                    {% if user.is_authenticated and user.profile.role == 'admin' %}
-                    <a href="{% url 'nurse_list' %}"
-                        class="nav-item-link {% if request.resolver_match.url_name == 'nurse_list' or request.resolver_match.url_name == 'nurse_detail' %}active{% endif %}"
-                        title="Assistants"><i class="bi bi-person-badge-fill"></i><span>Assistants</span></a>
+                                    {% if user.is_authenticated and user.profile.role == 'admin' %}
+                <button class="nav-item-link w-100 border-0 text-start" type="button" id="notifBellBtn"
+                    title="Notifications">
+                    <i class="bi bi-bell-fill"></i><span>Notifications</span>
+                    {% if nav_unread_notification_count %}
+                    <span class="badge rounded-pill bg-danger ms-auto">
+                        {% if nav_unread_notification_count > 99 %}99+{% else %}{{ nav_unread_notification_count }}{% endif %}
+                    </span>
                     {% endif %}
+                </button>
+                {% endif %}
                     <a href="{% url 'student_records' %}"
                         class="nav-item-link {% if request.resolver_match.url_name == 'student_records' %}active{% endif %}"
                         title="Students">
@@ -489,41 +648,7 @@
                     <span class="badge rounded-pill bg-danger ms-auto nav-badge">{{ nav_low_stock_count }}</span>
                 </a>
                 {% endif %}
-
-                <div class="dropdown mb-2">
-                    <button class="nav-item-link w-100 border-0 text-start" type="button" data-bs-toggle="dropdown"
-                        aria-expanded="false" title="Notifications">
-                        <i class="bi bi-bell-fill"></i><span>Notifications</span>
-                        {% if nav_unread_notification_count %}<span class="badge rounded-pill bg-danger ms-auto">{{
-                            nav_unread_notification_count }}</span>{% endif %}
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-dark shadow p-0"
-                        style="width: min(360px, calc(100vw - 2rem)); max-height: 420px; overflow-y: auto;">
-                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                            <strong>Notifications</strong>
-                            <form method="post" action="{% url 'mark_all_notifications_read' %}">{% csrf_token %}<input
-                                    type="hidden" name="next" value="{{ request.path }}"><button
-                                    class="btn btn-link btn-sm p-0">Mark all as read</button></form>
-                                               </div>
-                        {% for notification in nav_notifications %}
-                        <form method="post" action="{% url 'mark_notification_read' notification.pk %}" class="m-0">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.path }}">
-                            <button type="submit"
-                                class="notification-item w-100 text-start border-0 bg-transparent {% if not notification.is_read %}unread{% endif %}">
-                                <div class="d-flex gap-2">
-                                    <i class="bi bi-{% if notification.object_type == 'medicine' %}capsule{% elif notification.object_type == 'student' %}person{% else %}bell{% endif %}-fill text-info"></i>
-                                    <div class="flex-grow-1">
-                                        <div class="small">{{ notification.message }}</div>
-                                        <div class="small text-body-secondary mt-1">{{ notification.created_at|timesince }} ago</div>
-                                    </div>
-                                </div>
-                            </button>
-                        </form>
-                        {% empty %}<div class="text-center text-body-secondary p-4 small"><i
-                                class="bi bi-bell-slash d-block fs-4 mb-2"></i>No notifications yet.</div>{% endfor %}
-                    </div>
-                </div> <a href="{% url 'settings' %}"
+                <a href="{% url 'settings' %}"
                     class="nav-item-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
                     style="margin-bottom: 0.75rem;" title="Settings">
                     <i class="bi bi-gear-fill"></i>
@@ -601,7 +726,53 @@
         {% endfor %}
         {% endif %}
     </div>
-
+            {% if user.is_authenticated and user.profile.role == 'admin' %}
+    <div id="notifOverlay" class="notif-overlay"></div>
+    <div id="notifPanel" class="notif-panel">
+        <div class="notif-panel-header">
+            <h5 class="mb-0"><i class="bi bi-bell-fill me-2"></i>Notifications</h5>
+            <div class="d-flex align-items-center gap-3">
+                <form method="post" action="{% url 'mark_all_notifications_read' %}" class="m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    <button class="btn btn-link btn-sm p-0 text-decoration-none">Mark all read</button>
+                </form>
+                <button type="button" id="notifCloseBtn" class="btn-close btn-close-white" aria-label="Close"></button>
+            </div>
+        </div>
+        <div class="notif-panel-body">
+            {% for label, items in nav_notifications_grouped %}
+            <div class="notif-group-label">{{ label }}</div>
+            {% for notification in items %}
+            <form method="post" action="{% url 'mark_notification_read' notification.pk %}" class="m-0">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="notif-card {% if not notification.is_read %}unread{% endif %}">
+                    <div class="notif-icon">
+                        <i class="bi bi-{% if notification.notification_type == 'medicine' %}capsule{% elif notification.notification_type == 'student' %}person-fill{% elif notification.notification_type == 'recycle_bin' %}recycle{% elif notification.notification_type == 'assistant' %}person-badge{% else %}bell-fill{% endif %}"></i>
+                    </div>
+                    <div class="notif-content">
+                        <div class="notif-title">{{ notification.title }}</div>
+                        <div class="notif-message">{{ notification.message }}</div>
+                        <div class="notif-time">{{ notification.created_at|date:"g:i A" }}{% if notification.triggered_by %} · {{ notification.triggered_by.username }}{% endif %}</div>
+                    </div>
+                    {% if not notification.is_read %}<span class="notif-dot"></span>{% endif %}
+                </button>
+            </form>
+            {% endfor %}
+            {% endfor %}
+            {% if not nav_notifications_grouped %}
+            <div class="notif-empty">
+                <i class="bi bi-bell-slash"></i>
+                <p>No notifications yet.</p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="notif-panel-footer">
+            <a href="{% url 'notification_list' %}">View All Notifications <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+    {% endif %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const sidebar = document.getElementById("appSidebar");
@@ -610,7 +781,26 @@
             const closeBtn = document.getElementById("closeSidebarBtn");
             const desktopToggleBtn = document.getElementById("toggleSidebarDesktopBtn");
             const logoToggleBtn = document.getElementById("logoToggleBtn");
+                        // ==========================================
+            // NOTIFICATION SLIDE-IN PANEL
+            // ==========================================
+            const notifBellBtn = document.getElementById("notifBellBtn");
+            const notifPanel = document.getElementById("notifPanel");
+            const notifOverlay = document.getElementById("notifOverlay");
+            const notifCloseBtn = document.getElementById("notifCloseBtn");
 
+            function openNotifPanel() {
+                if (notifPanel) notifPanel.classList.add("show");
+                if (notifOverlay) notifOverlay.classList.add("show");
+            }
+            function closeNotifPanel() {
+                if (notifPanel) notifPanel.classList.remove("show");
+                if (notifOverlay) notifOverlay.classList.remove("show");
+            }
+
+            if (notifBellBtn) notifBellBtn.addEventListener("click", openNotifPanel);
+            if (notifCloseBtn) notifCloseBtn.addEventListener("click", closeNotifPanel);
+            if (notifOverlay) notifOverlay.addEventListener("click", closeNotifPanel);
             if (localStorage.getItem('sidebarCollapsed') === 'true') {
                 document.body.classList.add('sidebar-collapsed');
             }
