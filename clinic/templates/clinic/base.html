@@ -36,7 +36,7 @@
             --sidebar-width: 260px;
             --sidebar-collapsed-width: 80px;
         }
-
+        
         [data-bs-theme="light"] {
             --shell-bg: #f4f7fb;
             --sidebar-bg: rgba(255, 255, 255, 0.95);
@@ -135,8 +135,7 @@
             color: #ffffff;
         }
 
-        /* Navigation Links */
-        .nav-item-link {
+         .nav-item-link {
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -148,6 +147,10 @@
             text-decoration: none;
             color: var(--nav-text);
             white-space: nowrap;
+            background: none;
+            -webkit-appearance: none;
+            appearance: none;
+            border: none;
         }
 
         .nav-item-link:hover {
@@ -159,7 +162,19 @@
             background: linear-gradient(135deg, #0F3569 0%, #1e40af 60%, #38bdf8 130%);
             color: #ffffff !important;
         }
+        button.nav-item-link {
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
+        button.nav-item-link:focus,
+        button.nav-item-link:active,
+        button.nav-item-link:focus-visible {
+            outline: none;
+            box-shadow: none;
+            background-color: var(--nav-hover-bg);
+            color: var(--nav-hover-color);
+        }
         .nav-item-link i {
             font-size: 1.05rem;
             width: 20px;
@@ -600,7 +615,7 @@
                     <a href="{% url 'nurse_list' %}"
                         class="nav-item-link {% if request.resolver_match.url_name == 'nurse_list' or request.resolver_match.url_name == 'nurse_detail' %}active{% endif %}"
                         title="Assistants"><i class="bi bi-person-badge-fill"></i><span>Assistants</span></a>
-                    <button class="nav-item-link w-100 border-0 text-start" type="button" id="notifBellBtn"
+                                        <button class="nav-item-link w-100 border-0 text-start {% if request.resolver_match.url_name == 'notification_list' %}active{% endif %}" type="button" id="notifBellBtn"
                         title="Notifications">
                     <i class="bi bi-bell-fill"></i><span>Notifications</span>
                     {% if nav_unread_notification_count %}
@@ -781,7 +796,6 @@
             const sidebar = document.getElementById("appSidebar");
             const overlay = document.getElementById("sidebarOverlay");
             const openBtn = document.getElementById("openSidebarBtn");
-            const closeBtn = document.getElementById("closeSidebarBtn");
             const desktopToggleBtn = document.getElementById("toggleSidebarDesktopBtn");
             const logoToggleBtn = document.getElementById("logoToggleBtn");
                         // ==========================================
@@ -831,7 +845,6 @@
             }
 
             if (openBtn) openBtn.addEventListener("click", toggleMobileSidebar);
-            if (closeBtn) closeBtn.addEventListener("click", toggleMobileSidebar);
             if (overlay) overlay.addEventListener("click", toggleMobileSidebar);
 
             // ==========================================
