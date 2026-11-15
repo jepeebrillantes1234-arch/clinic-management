@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from django.contrib.auth.models import User
 from django.db import models
+from django.core.validators import RegexValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -18,6 +19,9 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
     photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    failed_login_attempts = models.PositiveIntegerField(default=0)
+    must_change_password = models.BooleanField(default=False)
+    temporary_password_expires_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"
@@ -55,7 +59,14 @@ class Student(models.Model):
     year_level = models.CharField(max_length=20)
     section = models.CharField(max_length=20, blank=True)
     
-    emergency_contact = models.CharField(max_length=100, help_text="Name and number")
+    emergency_contact = models.CharField(max_length=100, help_text="Mother or emergency contact name")
+    emergency_contact_number = models.CharField(
+        max_length=11,
+        blank=True,
+        default="",
+        validators=[RegexValidator(regex=r"^\d{11}$", message="Enter exactly 11 digits.")],
+        help_text="11-digit mother or emergency contact number",
+    )
     date_registered = models.DateTimeField(auto_now_add=True)
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -74,6 +85,7 @@ class Student(models.Model):
 class Medicine(models.Model):
     name = models.CharField(max_length=150, unique=True)
     category = models.CharField(max_length=100, blank=True, help_text="hal. Pain Reliever, Antibiotic")
+    indications = models.CharField(max_length=500, blank=True, help_text="Clinic-approved condition keywords, comma-separated; suggestions only")
     quantity_in_stock = models.PositiveIntegerField(default=0)
     unit = models.CharField(max_length=30, default='pcs', help_text="hal. pcs, bottles, boxes")
     expiration_date = models.DateField(null=True, blank=True)

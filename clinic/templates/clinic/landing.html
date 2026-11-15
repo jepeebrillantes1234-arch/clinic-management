@@ -337,6 +337,14 @@
             background: linear-gradient(135deg, #38bdf8 0%, #8b5cf6 100%);
         }
     </style>
+    <style>
+        .forgot-password-modal { position: fixed; inset: 0; z-index: 1050; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(2, 6, 23, .62); backdrop-filter: blur(5px); }
+        .forgot-password-modal .forgot-card { width: min(100%, 430px); padding: 2rem; border: 1px solid rgba(255, 255, 255, .22); border-radius: 22px; background: rgba(15, 23, 42, .93); box-shadow: 0 24px 60px rgba(0, 0, 0, .38); text-align: center; }
+        .forgot-password-modal .forgot-icon { width: 58px; height: 58px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; border-radius: 50%; color: #38bdf8; background: rgba(56, 189, 248, .15); font-size: 1.6rem; }
+        .forgot-password-modal .forgot-title { color: #f8fafc; font-size: 1.55rem; font-weight: 700; }
+        .forgot-password-modal .forgot-copy { color: #cbd5e1; font-size: .9rem; line-height: 1.55; }
+        .forgot-password-modal .back-to-login { border: 0; padding: 0; color: #67e8f9; background: transparent; font-weight: 600; }
+    </style>
 </head>
 <body class="{% if form.errors %}show-login{% endif %}">
 
@@ -381,6 +389,11 @@
                 <i class="bi bi-exclamation-circle-fill me-1"></i> Wrong Password or Username.
             </div>
             {% endif %}
+            {% if show_forgot_password %}
+            <div class="alert py-2 px-3 mb-3 border-0" style="font-size: 0.8rem; border-radius: 10px; background: rgba(56, 189, 248, 0.16); color: #bae6fd;">
+                <i class="bi bi-info-circle-fill me-1"></i> You have reached 5 failed login attempts.
+            </div>
+            {% endif %}
 
             <form method="post" action="{% url 'landing' %}">
                 {% csrf_token %}
@@ -409,10 +422,29 @@
             </form>
         </div>
     </main>
+    {% if show_forgot_password %}
+    <section class="forgot-password-modal" id="forgotPasswordModal" role="dialog" aria-modal="true" aria-labelledby="forgotPasswordTitle">
+        <div class="forgot-card">
+            <div class="forgot-icon"><i class="bi bi-shield-lock-fill"></i></div>
+            <h2 class="forgot-title" id="forgotPasswordTitle">Forgot Password?</h2>
+            <p class="forgot-copy mb-4">Enter your email or username below and we'll send you a 6-digit verification code.</p>
+            <form method="post" action="{% url 'forgot_password_request' %}">
+                {% csrf_token %}
+                <div class="text-start mb-3">
+                    <label class="input-group-label"><i class="bi bi-person-envelope-fill text-info me-1"></i> EMAIL OR USERNAME</label>
+                    <input type="text" name="identifier" class="custom-input" placeholder="john@example.com or johndoe" required autocomplete="username">
+                </div>
+                <button type="submit" class="btn-submit-main mt-0">Send Reset Code <i class="bi bi-send-fill ms-1"></i></button>
+            </form>
+            <button type="button" class="back-to-login mt-3" onclick="closeForgotPassword()"><i class="bi bi-arrow-left"></i> Back to Login</button>
+        </div>
+    </section>
+    {% endif %}
 
     <script>
         function openLogin() { document.body.classList.add('show-login'); }
         function closeLogin() { document.body.classList.remove('show-login'); }
+        function closeForgotPassword() { document.getElementById('forgotPasswordModal')?.remove(); }
 
         function togglePass() {
             const pass = document.getElementById('id_password');

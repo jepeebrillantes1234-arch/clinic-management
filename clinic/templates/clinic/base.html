@@ -91,10 +91,17 @@
             z-index: 1040;
             overflow-y: auto;
             overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--sidebar-border);
             /* Tinanggal ang CSS transitions para maging instant reload-like ang kilos */
             transition: none !important;
+        }
+
+        #appSidebar::-webkit-scrollbar {
+            display: none;
+            width: 0;
         }
 
         .sidebar-header-glass {

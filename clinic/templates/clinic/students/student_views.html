@@ -1,4 +1,4 @@
-﻿{% extends "clinic/base.html" %}
+{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}{{ student.full_name }} - Student Detail - Clinic Management System{% endblock %}
@@ -497,12 +497,27 @@
         }
     }
 
+    @media print {
+        @page { size: A4 portrait; margin: 12mm; }
+        body * { visibility: hidden !important; }
+        #student-print-area, #student-print-area * { visibility: visible !important; }
+        #student-print-area { position: absolute; inset: 0; width: 100%; color: #111 !important; background: #fff !important; }
+        #student-print-area .no-print,
+        #student-print-area .hero-actions,
+        #student-print-area .table-action-link,
+        #student-print-area th:last-child,
+        #student-print-area td:last-child { display: none !important; }
+        #student-print-area .cms-card,
+        #student-print-area .dashboard-hero-card { box-shadow: none !important; background: #fff !important; border-color: #bbb !important; break-inside: avoid; }
+        #student-print-area .cms-table th, #student-print-area .cms-table td { color: #111 !important; background: #fff !important; }
+    }
+
     .recycle-flight { position: fixed; z-index: 3000; pointer-events: none; transition: transform .48s cubic-bezier(.2,.8,.2,1), opacity .48s ease; }
     .recycle-bin-pulse { animation: recycle-bin-pulse .5s ease; }
     @keyframes recycle-bin-pulse { 50% { transform: scale(1.18) rotate(-8deg); } }
 </style>
 
-<div class="cms-container">
+<div class="cms-container" id="student-print-area">
 
     <!-- 1. HERO HEADER PROFILE BANNER -->
     <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -527,8 +542,8 @@
             <a href="{% url 'student_edit' student.pk %}" class="btn-cms-secondary">
                 <i class="bi bi-pencil-square"></i> Edit
             </a>
-            <button type="button" class="btn-cms-danger" id="openStudentModalBtn">
-                <i class="bi bi-recycle"></i> Move to Recycle Bin
+            <button type="button" class="btn-cms-secondary no-print" onclick="window.print()">
+                <i class="bi bi-printer-fill"></i> Print Student Record
             </button>
         </div>
     </div>
@@ -586,7 +601,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-telephone-inbound"></i> Emergency Contact</span>
-                    <span class="info-value text-muted">{{ student.emergency_contact|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value text-muted">{{ student.emergency_contact|default:"--" }}{% if student.emergency_contact_number %} ({{ student.emergency_contact_number }}){% endif %}</span>
                 </div>
             </div>
         </div>
@@ -662,35 +677,6 @@
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL 1: STUDENT PROFILE DELETE MODAL -->
-<!-- ========================================== -->
-<div class="confirm-modal-overlay" id="studentModalOverlay" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle">
-    <div class="confirm-modal-box">
-        <div class="warning-icon-wrapper">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-        </div>
-        <h3 class="confirm-modal-title" id="studentModalTitle">Move Student to Recycle Bin?</h3>
-        <div class="confirm-modal-text">
-            This record will be moved to the Recycle Bin and can be restored only by an admin.
-            <br>
-            <span class="object-highlight">{{ student.full_name }}</span>
-            <div class="warning-subtext">
-                <i class="bi bi-info-circle-fill"></i>
-                This does not permanently delete the student record.
-            </div>
-        </div>
-        <form method="post" action="{% url 'student_delete' student.pk %}" class="modal-actions" id="studentDeleteForm">
-            {% csrf_token %}
-            <button type="button" class="btn-modal btn-cancel" id="cancelStudentBtn">Cancel</button>
-            <button type="submit" class="btn-modal btn-delete-action" id="submitStudentBtn">
-                <i class="bi bi-recycle" id="studentBtnIcon"></i>
-                <span id="studentBtnText">Yes, Move to Recycle Bin</span>
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- ========================================== -->
 <!-- MODAL 2: MEDICINE RECORD DELETE MODAL -->
 <!-- ========================================== -->
 <div class="confirm-modal-overlay" id="medModalOverlay" role="dialog" aria-modal="true" aria-labelledby="medModalTitle">
@@ -722,57 +708,6 @@
 <!-- JavaScript para sa Modals (Walang Animation) -->
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // --- STUDENT MODAL LOGIC ---
-        const openStudentModalBtn = document.getElementById("openStudentModalBtn");
-        const studentModalOverlay = document.getElementById("studentModalOverlay");
-        const cancelStudentBtn = document.getElementById("cancelStudentBtn");
-        const studentDeleteForm = document.getElementById("studentDeleteForm");
-        const submitStudentBtn = document.getElementById("submitStudentBtn");
-        const studentBtnIcon = document.getElementById("studentBtnIcon");
-        const studentBtnText = document.getElementById("studentBtnText");
-
-        if (openStudentModalBtn) {
-            openStudentModalBtn.addEventListener("click", function() {
-                studentModalOverlay.classList.add("active");
-                if (cancelStudentBtn) cancelStudentBtn.focus();
-            });
-        }
-
-        if (cancelStudentBtn) {
-            cancelStudentBtn.addEventListener("click", function() {
-                studentModalOverlay.classList.remove("active");
-            });
-        }
-
-        if (studentModalOverlay) {
-            studentModalOverlay.addEventListener("click", function(e) {
-                if (e.target === studentModalOverlay) {
-                    studentModalOverlay.classList.remove("active");
-                }
-            });
-        }
-
-        if (studentDeleteForm) {
-            studentDeleteForm.addEventListener("submit", function(event) {
-                if (studentDeleteForm.dataset.submitting === "true") return;
-                event.preventDefault();
-                studentDeleteForm.dataset.submitting = "true";
-                submitStudentBtn.disabled = true;
-                studentBtnText.textContent = "Moving...";
-                const source = document.querySelector('.dashboard-hero-card');
-                const target = document.querySelector('a[title="Recycle Bin"] i');
-                if (source && target) {
-                    const sourceRect = source.getBoundingClientRect(), targetRect = target.getBoundingClientRect();
-                    const flying = source.cloneNode(false);
-                    flying.className = 'recycle-flight';
-                    flying.style.cssText += `left:${sourceRect.left}px;top:${sourceRect.top}px;width:${sourceRect.width}px;height:${Math.min(sourceRect.height, 90)}px;background:rgba(37,99,235,.18);border-radius:14px;`;
-                    document.body.appendChild(flying);
-                    requestAnimationFrame(() => { flying.style.transform = `translate(${targetRect.left - sourceRect.left}px,${targetRect.top - sourceRect.top}px) scale(.05)`; flying.style.opacity = '0'; target.classList.add('recycle-bin-pulse'); });
-                    setTimeout(() => { flying.remove(); studentDeleteForm.submit(); }, 520);
-                } else { studentDeleteForm.submit(); }
-            });
-        }
-
         // --- MEDICINE RECORD MODAL LOGIC ---
         const medModalOverlay = document.getElementById("medModalOverlay");
         const cancelMedBtn = document.getElementById("cancelMedBtn");
@@ -818,10 +753,13 @@
             });
         }
 
+        if (new URLSearchParams(window.location.search).get("print") === "1") {
+            window.addEventListener("load", () => setTimeout(() => window.print(), 250), { once: true });
+        }
+
         // Global ESC Key para isara ang modal
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape" || event.keyCode === 27) {
-                if (studentModalOverlay) studentModalOverlay.classList.remove("active");
                 if (medModalOverlay) medModalOverlay.classList.remove("active");
             }
         });

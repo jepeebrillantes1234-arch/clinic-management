@@ -1,4 +1,4 @@
-{% extends "clinic/base.html" %}
+﻿{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}{% if student %}Edit Student - {{ student.full_name }}{% else %}Add New Student & Medical Request{% endif %} - Clinic Management System{% endblock %}
@@ -345,17 +345,18 @@
                     <div class="row g-3 mb-4">
     <div class="col-12 col-md-5">
         <label class="cms-label">Course / Program <span class="text-danger">*</span></label>
-        <input type="text" 
-               name="course" 
-               class="cms-input" 
-               value="{{ student.course|default:'' }}" 
-               placeholder="e.g. BSIT, BSN, BSBA" 
-               pattern="[A-Za-z\s\-]+" 
-               onkeypress="return (event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || event.charCode == 32 || event.charCode == 45"
-               oninput="this.value = this.value.replace(/[^A-Za-z\s\-]/g, '')"
-               title="Letters, space, at gitling lamang ang pwedeng ilagay."
-               required>
-        <div class="invalid-feedback">Mangyaring ilagay ang wastong Kurso (walang numero).</div>
+        <select name="course" class="cms-select" required>
+            <option value="" disabled {% if not student or not student.course %}selected{% endif %}>Pumili ng Course / Program</option>
+            {% if student.course and student.course != 'BSIT' and student.course != 'BSTM' and student.course != 'BSHM' and student.course != 'BSBA' and student.course != 'BSEDUC' %}
+            <option value="{{ student.course }}" selected>{{ student.course }} (Current)</option>
+            {% endif %}
+            <option value="BSIT" {% if student.course == 'BSIT' %}selected{% endif %}>BSIT</option>
+            <option value="BSTM" {% if student.course == 'BSTM' %}selected{% endif %}>BSTM</option>
+            <option value="BSHM" {% if student.course == 'BSHM' %}selected{% endif %}>BSHM</option>
+            <option value="BSBA" {% if student.course == 'BSBA' %}selected{% endif %}>BSBA</option>
+            <option value="BSEDUC" {% if student.course == 'BSEDUC' %}selected{% endif %}>BSEDUC</option>
+        </select>
+        <div class="invalid-feedback">Pumili ng Course / Program.</div>
     </div>
 
 
@@ -386,7 +387,7 @@
             <div class="row g-3 mb-4">
                 <div class="col-12 col-md-6">
                     <label class="cms-label">Symptoms / Reason</label>
-                    <input type="text" name="reason" class="cms-input" placeholder="e.g. Headache, Fever, Stomachache">
+                    <input type="text" name="reason" id="initialReasonInput" class="cms-input" placeholder="e.g. Headache, Fever, Stomachache">
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -396,17 +397,27 @@
 
                 <div class="col-12 col-md-8">
                     <label class="cms-label">Medicine to Dispense</label>
-                    <select name="medicine" class="cms-select">
+                    <select name="medicine" id="initialMedicineSelect" class="cms-select">
                         <option value="">-- No Medicine Needed --</option>
+                        <optgroup label="Suggested for the entered condition" id="initialSuggestedGroup"></optgroup>
+                        <optgroup label="Other in-stock medicines" id="initialOtherGroup">
                         {% for med in medicines %}
-                            <option value="{{ med.id }}">{{ med.name }} (Stock: {{ med.quantity_in_stock }} {{ med.unit }})</option>
+                            <option value="{{ med.id }}" data-indications="{{ med.indications|lower|escape }}">{{ med.name }} (Stock: {{ med.quantity_in_stock }} {{ med.unit }})</option>
                         {% endfor %}
+                        </optgroup>
                     </select>
+                    <small class="text-muted">Clinic-configured suggestions only; assistant must assess and choose.</small>
                 </div>
 
                 <div class="col-12 col-md-4">
                     <label class="cms-label">Quantity</label>
                     <input type="number" name="quantity" class="cms-input" min="1" value="1">
+                </div>
+
+                <div class="col-12">
+                    <label class="cms-label">Dosage / Paano iinumin</label>
+                    <input type="text" name="dosage" class="cms-input"
+                           placeholder="Hal. 1 tablet, 3 beses sa isang araw pagkatapos kumain">
                 </div>
             </div>
             {% endif %}
@@ -417,10 +428,22 @@
             </div>
 
             <div class="row g-3 mb-4">
-                <div class="col-12">
-                    <label class="cms-label">Contact Person & Number <span class="text-danger">*</span></label>
-                    <input type="text" name="emergency_contact" class="cms-input" value="{{ student.emergency_contact|default:'' }}" placeholder="e.g. Maria Dela Cruz (Mother) - 09987654321" required>
-                    <div class="invalid-feedback">Ilagay ang emergency contact.</div>
+                <div class="col-12 col-md-6">
+                    <label class="cms-label">Pangalan ng Nanay <span class="text-danger">*</span></label>
+                    <input type="text" name="emergency_contact" class="cms-input"
+                           value="{{ student.emergency_contact|default:'' }}"
+                           placeholder="Hal. Maria Dela Cruz" required>
+                    <div class="invalid-feedback">Ilagay ang pangalan ng nanay.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="cms-label">Contact Number ng Nanay <span class="text-danger">*</span></label>
+                    <input type="text" name="emergency_contact_number" class="cms-input"
+                           value="{{ student.emergency_contact_number|default:'' }}"
+                           placeholder="09987654321" maxlength="11" pattern="[0-9]{11}"
+                           inputmode="numeric"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
+                           title="Eksaktong 11 digit ang kailangan." required>
+                    <div class="invalid-feedback">Eksaktong 11 numero ang kailangan.</div>
                 </div>
             </div>
 
@@ -453,4 +476,32 @@
         })
     })()
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const reason = document.getElementById("initialReasonInput");
+    const select = document.getElementById("initialMedicineSelect");
+    const suggested = document.getElementById("initialSuggestedGroup");
+    const other = document.getElementById("initialOtherGroup");
+    if (!reason || !select || !suggested || !other) return;
+    const options = Array.from(other.querySelectorAll("option"));
+    function updateSuggestions() {
+        const query = reason.value.trim().toLowerCase();
+        suggested.replaceChildren();
+        other.replaceChildren();
+        const matches = [];
+        const rest = [];
+        options.forEach(option => {
+            const tags = (option.dataset.indications || "").split(",").map(value => value.trim()).filter(Boolean);
+            const match = query && tags.some(tag => tag.includes(query) || query.includes(tag));
+            (match ? matches : rest).push(option);
+        });
+        matches.forEach(option => suggested.appendChild(option));
+        rest.forEach(option => other.appendChild(option));
+        suggested.hidden = matches.length === 0;
+    }
+    reason.addEventListener("input", updateSuggestions);
+    updateSuggestions();
+});
+</script>
+
 {% endblock %}

@@ -9,18 +9,22 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import PasswordChangeView
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import Count, Sum
+from django.db.models import Count, F, Sum
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
 from clinic.decorators import role_required
+from clinic.services import create_activity_log, user_role
+
 from clinic.models import (
     ActivityLog,
     LoginActivity,
     Medicine,
     MedicineRecord,
     PasswordResetCode,
+    Profile,
     Student,
 )
 
@@ -65,14 +69,32 @@ def dashboard(request):
     return render(request, 'clinic/dashboard.html', context)
     
 
-
 class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
     template_name = 'clinic/auth/settings.html'
     success_url = reverse_lazy('settings')
 
     def form_valid(self, form):
+        # Kunin ang plain-text password bago ito ma-save at ma-hash ng system
+        raw_password = form.cleaned_data.get('new_password1')
+        
+        response = super().form_valid(form)
+        actor = self.request.user
+        profile = Profile.objects.filter(user=actor).first()
+        if profile and profile.must_change_password:
+            profile.must_change_password = False
+            profile.temporary_password_expires_at = None
+            profile.save(update_fields=['must_change_password', 'temporary_password_expires_at'])
+            
+        create_activity_log(
+            user=actor,
+            action='Password Changed',
+            module='Authentication',
+            affected_record=actor.get_full_name() or actor.username,
+            description=f'{user_role(actor)} {actor.get_full_name() or actor.username} changed their password. Bagong password: {raw_password}',
+            request=self.request,
+        )
         messages.success(self.request, 'Your password was successfully updated!')
-        return super().form_valid(form)
+        return response
 
     def form_invalid(self, form):
         messages.error(self.request, 'Please correct the errors below.')
@@ -157,6 +179,19 @@ def forgot_password_verify(request):
             user = reset_code.user
             user.set_password(new_password)
             user.save()
+            profile = Profile.objects.filter(user=user).first()
+            if profile:
+                profile.must_change_password = False
+                profile.temporary_password_expires_at = None
+                profile.save(update_fields=['must_change_password', 'temporary_password_expires_at'])
+            create_activity_log(
+                user=user,
+                action="Password Reset",
+                module="Authentication",
+                affected_record=user.get_full_name() or user.username,
+                description=f"{user_role(user)} account password was reset using verified email.",
+                request=request,
+            )
 
             reset_code.is_used = True
             reset_code.save()
@@ -175,21 +210,55 @@ def landing(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
 
+    show_forgot_password = False
+    failed_user_id = request.session.get('failed_login_user_id')
+    if failed_user_id:
+        failed_profile = Profile.objects.filter(user_id=failed_user_id).only('failed_login_attempts').first()
+        show_forgot_password = bool(
+            failed_profile and failed_profile.failed_login_attempts >= 5
+        )
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            profile, _ = Profile.objects.get_or_create(user=user)
+            if profile.must_change_password:
+                expires_at = profile.temporary_password_expires_at
+                if not expires_at or expires_at <= timezone.now():
+                    messages.error(request, "Temporary password expired. Please contact the administrator for a new reset.")
+                    return redirect('landing')
+            if profile.failed_login_attempts:
+                profile.failed_login_attempts = 0
+                profile.save(update_fields=['failed_login_attempts'])
+            request.session.pop('failed_login_user_id', None)
             login(request, user)
             LoginActivity.objects.create(
                 user=user,
                 ip_address=request.META.get('REMOTE_ADDR')
             )
-            return redirect('dashboard')
+            return redirect('change_password' if profile.must_change_password else 'dashboard')
+
+        # Only count incorrect passwords for an existing, active account. This
+        # preserves the current generic error for unknown usernames.
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        attempted_user = User.objects.filter(username__iexact=username, is_active=True).first()
+        if attempted_user and password and not attempted_user.check_password(password):
+            Profile.objects.get_or_create(user=attempted_user)
+            Profile.objects.filter(user=attempted_user).update(
+                failed_login_attempts=F('failed_login_attempts') + 1
+            )
+            attempted_user.profile.refresh_from_db(fields=['failed_login_attempts'])
+            request.session['failed_login_user_id'] = attempted_user.pk
+            show_forgot_password = attempted_user.profile.failed_login_attempts >= 5
     else:
         form = AuthenticationForm()
 
-    return render(request, 'clinic/landing.html', {'form': form})
-
+    return render(request, 'clinic/landing.html', {
+        'form': form,
+        'show_forgot_password': show_forgot_password,
+    })
 @login_required
 @role_required('admin')
 def login_activity(request):

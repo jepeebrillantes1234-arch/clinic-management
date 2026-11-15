@@ -290,6 +290,17 @@
                     <input type="text" name="category" class="cms-input" value="{{ medicine.category|default:'' }}" placeholder="e.g. Pain Reliever">
                 </div>
 
+                <!-- Clinic-approved condition keywords -->
+                <div class="form-group-full">
+                    <label class="cms-label">
+                        <i class="bi bi-heart-pulse-fill text-danger"></i> Suggested for Conditions / Symptoms
+                    </label>
+                    <input type="text" name="indications" class="cms-input"
+                           value="{{ medicine.indications|default:'' }}"
+                           placeholder="e.g. headache, fever (comma-separated keywords)">
+                    <small class="text-muted">Clinic-configured suggestions only. Assistant must assess and choose the medicine.</small>
+                </div>
+
                 <!-- Quantity in Stock -->
                 <div>
                     <label class="cms-label">

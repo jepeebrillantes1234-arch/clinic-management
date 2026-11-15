@@ -21,6 +21,12 @@ def medicine_record_create(request, student_pk):
         except ValueError:
             qty = 1
 
+        dosage = request.POST.get("dosage", "").strip()
+        if not dosage:
+            messages.error(request, "Ilagay kung paano iinumin ang gamot.")
+            medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
+            return render(request, "clinic/medicines/medicine_record_form.html", {"student": student, "medicines": medicines})
+
         medicine = get_object_or_404(Medicine, pk=medicine_id, is_deleted=False)
 
         if medicine.quantity_in_stock < qty:
@@ -39,7 +45,7 @@ def medicine_record_create(request, student_pk):
                 student=student,
                 medicine=medicine,
                 medicine_name=medicine.name,
-                dosage=f"{medicine.category} ({medicine.unit})" if medicine.category else medicine.unit,
+                dosage=request.POST.get("dosage", "").strip(),
                 quantity=qty,
                 expiration_date=medicine.expiration_date,
                 prescription=request.POST.get("prescription", "").strip(),

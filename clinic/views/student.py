@@ -1,10 +1,9 @@
-from django.contrib import messages 
+import re
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine, MedicineRecord, Notification, Student, Nurse
@@ -46,6 +45,13 @@ def student_records(request):
 
 @login_required
 @role_required("admin", "nurse")
+def student_print_all(request):
+    students = Student.objects.filter(is_deleted=False).order_by("last_name", "first_name", "student_id")
+    return render(request, "clinic/students/student_print_all.html", {"students": students})
+
+
+@login_required
+@role_required("admin", "nurse")
 def student_views(request, pk):
     student = get_object_or_404(Student, pk=pk, is_deleted=False)
     medicine_records = MedicineRecord.objects.filter(student=student, is_deleted=False).order_by("-date_released")
@@ -65,6 +71,7 @@ def student_create(request):
     if request.method == "POST":
         reason = request.POST.get("reason")
         medicine_id = request.POST.get("medicine")
+        dosage = request.POST.get("dosage", "").strip()
         quantity_input = request.POST.get("quantity", 1)
 
         try:
@@ -75,6 +82,14 @@ def student_create(request):
         first_name = request.POST.get("first_name", "").strip()
         middle_name = request.POST.get("middle_name", "").strip()
         last_name = request.POST.get("last_name", "").strip()
+        emergency_contact_name = request.POST.get("emergency_contact", "").strip()
+        emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
+        if medicine_id and not dosage:
+            messages.error(request, "Ilagay ang dosage o instruction kung may gamot na idi-dispense.")
+            return redirect("student_create")
+        if not emergency_contact_name or not re.fullmatch(r"\d{11}", emergency_contact_number):
+            messages.error(request, "Ilagay ang pangalan ng nanay at eksaktong 11-digit na contact number.")
+            return redirect("student_create")
         
         if middle_name:
             full_name = f"{first_name} {middle_name} {last_name}"
@@ -96,7 +111,8 @@ def student_create(request):
                     course=request.POST["course"],
                     year_level=request.POST["year_level"],
                     section=request.POST.get("section", ""),
-                    emergency_contact=request.POST["emergency_contact"],
+                    emergency_contact=emergency_contact_name,
+                    emergency_contact_number=emergency_contact_number,
                 )
                 
 
@@ -114,7 +130,7 @@ def student_create(request):
                         student=student,
                         medicine=medicine,
                         medicine_name=medicine.name,
-                        dosage=f"{medicine.category} ({medicine.unit})" if medicine.category else medicine.unit,
+                        dosage=dosage,
                         quantity=qty,
                         expiration_date=medicine.expiration_date,
                         prescription=reason or "Initial Dispensing",
@@ -157,6 +173,10 @@ def student_edit(request, pk):
     student = get_object_or_404(Student, pk=pk, is_deleted=False)
     
     if request.method == "POST":
+        emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
+        if not re.fullmatch(r"\d{11}", emergency_contact_number):
+            messages.error(request, "Eksaktong 11-digit na contact number ng nanay ang kailangan.")
+            return redirect("student_edit", pk=student.pk)
         student.student_id = request.POST.get("student_id", "")
         student.first_name = request.POST.get("first_name", "")
         student.middle_name = request.POST.get("middle_name", "")
@@ -169,7 +189,8 @@ def student_edit(request, pk):
         student.course = request.POST.get("course", "")
         student.year_level = request.POST.get("year_level", "")
         student.section = request.POST.get("section", "")
-        student.emergency_contact = request.POST.get("emergency_contact", "")
+        student.emergency_contact = request.POST.get("emergency_contact", "").strip()
+        student.emergency_contact_number = emergency_contact_number
         
         student.save()
         messages.success(request, "Na-update ang impormasyon ng student.")
@@ -187,35 +208,3 @@ def student_edit(request, pk):
 
         return redirect("student_views", pk=student.pk)
     return render(request, "clinic/students/student_create.html", {"student": student})
-
-@login_required
-@role_required("admin", "nurse")
-@require_POST
-def student_delete(request, pk):
-    student = get_object_or_404(Student, pk=pk, is_deleted=False)
-    student.is_deleted = True
-    student.deleted_at = timezone.now()
-    student.deleted_by = request.user
-    student.save(update_fields=['is_deleted', 'deleted_at', 'deleted_by'])
-    role = getattr(getattr(request.user, 'profile', None), 'role', 'unknown').title()
-    ActivityLog.objects.create(
-        
-        user=request.user,
-        category='student',
-        action='Student moved to Recycle Bin',
-        details=student.full_name,
-        description=(f'{request.user.get_full_name() or request.user.username} ({role}) moved '
-                     f'{student.full_name} to the Recycle Bin.'),
-    )
-    for admin in User.objects.filter(profile__role='admin'):
-        Notification.objects.create(
-            recipient=admin,
-            title="Student Moved to Recycle Bin",
-            message=f"{request.user.username} moved {student.full_name} to the Recycle Bin.",
-            notification_type='student',
-            module='Student Records',
-            triggered_by=request.user,
-            related_object_id=student.pk,
-        )
-    messages.success(request, "Student record moved to Recycle Bin.")
-    return redirect("student_records")

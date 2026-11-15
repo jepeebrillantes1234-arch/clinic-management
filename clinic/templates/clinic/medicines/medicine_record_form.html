@@ -261,12 +261,16 @@
                 </label>
                 <select name="medicine" id="medicineSelect" class="cms-select" required>
                     <option value="">-- Piliin ang gamot --</option>
+                    <optgroup label="Suggested for the entered condition" id="recordSuggestedGroup"></optgroup>
+                    <optgroup label="Other in-stock medicines" id="recordOtherGroup">
                     {% for m in medicines %}
-                    <option value="{{ m.pk }}" data-stock="{{ m.quantity_in_stock }}" data-unit="{{ m.unit }}">
+                    <option value="{{ m.pk }}" data-stock="{{ m.quantity_in_stock }}" data-unit="{{ m.unit }}" data-indications="{{ m.indications|lower|escape }}">
                         {{ m.name }} ({{ m.quantity_in_stock }} {{ m.unit }} natitira)
                     </option>
                     {% endfor %}
+                    </optgroup>
                 </select>
+                <small class="text-muted">Ilagay ang sakit o sintomas sa field sa ibaba. Lalabas dito ang mga gamot na na-configure ng clinic para sa mga keyword na iyon; piliin lamang matapos ang assessment.</small>
                 <div id="stockNoteContainer" class="d-none">
                     <span class="stock-pill">
                         <i class="bi bi-box-seam"></i> <span id="stockNoteText"></span>
@@ -282,12 +286,21 @@
                 <input type="number" name="quantity" id="quantityInput" class="cms-input" min="1" value="1" required>
             </div>
 
-            <!-- Prescription / Reason -->
+            <!-- Dosage / Instructions -->
+            <div class="mb-4">
+                <label class="cms-label">Dosage / Paano iinumin <span class="text-danger">*</span></label>
+                <input type="text" name="dosage" class="cms-input"
+                       value="{{ mr.dosage|default:'' }}"
+                       placeholder="Hal. 1 tablet, 3 beses sa isang araw pagkatapos kumain"
+                       required>
+            </div>
+
+            <!-- Sakit / Sintomas / Dahilan -->
             <div class="mb-4">
                 <label class="cms-label">
-                    <i class="bi bi-file-earmark-medical-fill text-info"></i> Prescription / Reason
+                    <i class="bi bi-file-earmark-medical-fill text-info"></i> Sakit / Sintomas / Dahilan
                 </label>
-                <textarea name="prescription" class="cms-textarea" rows="3" placeholder="hal. Headache, Fever, Stomachache..."></textarea>
+                <textarea name="prescription" id="conditionInput" class="cms-textarea" rows="3" placeholder="Ilagay ang sakit o sintomas...">{{ mr.prescription|default:"" }}</textarea>
             </div>
 
             <!-- Action Buttons -->
@@ -310,6 +323,30 @@
         const stockNoteContainer = document.getElementById('stockNoteContainer');
         const stockNoteText = document.getElementById('stockNoteText');
         const quantityInput = document.getElementById('quantityInput');
+        const conditionInput = document.getElementById('conditionInput');
+        const suggestedGroup = document.getElementById('recordSuggestedGroup');
+        const otherGroup = document.getElementById('recordOtherGroup');
+
+        if (medicineSelect && conditionInput && suggestedGroup && otherGroup) {
+            const medicineOptions = Array.from(otherGroup.querySelectorAll('option'));
+            const updateSuggestions = () => {
+                const queryTerms = conditionInput.value.toLowerCase().split(/[,;\n]+/).map(term => term.trim()).filter(Boolean);
+                suggestedGroup.replaceChildren();
+                otherGroup.replaceChildren();
+                const matches = [];
+                const rest = [];
+                medicineOptions.forEach(option => {
+                    const tags = (option.dataset.indications || '').split(',').map(tag => tag.trim()).filter(Boolean);
+                    const isSuggested = queryTerms.some(term => tags.some(tag => tag.includes(term) || term.includes(tag)));
+                    (isSuggested ? matches : rest).push(option);
+                });
+                matches.forEach(option => suggestedGroup.appendChild(option));
+                rest.forEach(option => otherGroup.appendChild(option));
+                suggestedGroup.hidden = matches.length === 0;
+            };
+            conditionInput.addEventListener('input', updateSuggestions);
+            updateSuggestions();
+        }
 
         if (medicineSelect) {
             medicineSelect.addEventListener('change', function () {

@@ -23,9 +23,9 @@ urlpatterns = [
     # Students
     path('students/', views.student_records, name='student_records'),
     path('students/add/', views.student_create, name='student_create'),
+    path('students/print-all/', views.student_print_all, name='student_print_all'),
     path('students/<int:pk>/', views.student_views, name='student_views'),
     path('students/<int:pk>/edit/', views.student_edit, name='student_edit'),
-    path('students/<int:pk>/delete/', views.student_delete, name='student_delete'),
 
     # Medicine Records
     path('students/<int:student_pk>/medicine-record/add/', views.medicine_record_create, name='medicine_record_create'),
@@ -36,6 +36,7 @@ urlpatterns = [
     path('nurses/', views.nurse_list, name='nurse_list'),
     path('nurses/add/', views.nurse_add, name='nurse_add'),
     path('nurses/<int:pk>/', views.nurse_views, name='nurse_views'),
+    path('nurses/<int:pk>/reset-password/', views.nurse_reset_password, name='nurse_reset_password'),
     path('nurses/<int:pk>/edit/', views.nurse_edit, name='nurse_edit'),
     path('nurses/<int:pk>/delete/', views.nurse_delete, name='nurse_delete'),
     path('nurses/login-activity/', views.login_activity, name='login_activity'),

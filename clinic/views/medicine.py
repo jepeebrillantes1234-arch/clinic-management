@@ -17,7 +17,7 @@ def medicine_list(request):
     medicines = Medicine.objects.filter(is_deleted=False).order_by("name")
     if query:
         medicines = medicines.filter(
-            models.Q(name__icontains=query) | models.Q(category__icontains=query)
+            models.Q(name__icontains=query) | models.Q(category__icontains=query) | models.Q(indications__icontains=query)
         )
     return render(request, "clinic/medicines/medicine_list.html", {"medicines": medicines, "query": query})
 
@@ -28,6 +28,7 @@ def medicine_create(request):
     if request.method == "POST":
         med_name = request.POST.get("name", "").strip()
         category = request.POST.get("category", "").strip()
+        indications = request.POST.get("indications", "").strip()
         unit = request.POST.get("unit", "pcs").strip()
         
         try:
@@ -48,6 +49,7 @@ def medicine_create(request):
             medicine = Medicine.objects.create(
                 name=med_name,
                 category=category,
+                indications=indications,
                 quantity_in_stock=quantity_in_stock,
                 unit=unit,
                 expiration_date=expiration_date if expiration_date else None,
@@ -80,6 +82,7 @@ def medicine_edit(request, pk):
     if request.method == "POST":
         medicine.name = request.POST.get("name", medicine.name).strip()
         medicine.category = request.POST.get("category", "").strip()
+        medicine.indications = request.POST.get("indications", "").strip()
         medicine.unit = request.POST.get("unit", "pcs").strip()
 
         try:

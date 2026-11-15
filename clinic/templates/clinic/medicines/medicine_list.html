@@ -1,4 +1,4 @@
-﻿{% extends "clinic/base.html" %}
+{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}Medicine Inventory - Clinic Management System{% endblock %}
@@ -354,6 +354,7 @@
                         <th class="text-center">Image</th>
                         <th>Medicine Name</th>
                         <th>Category</th>
+                        <th>Suggested for</th>
                         <th>Stock</th>
                         <th>Expiration Date</th>
                         <th>Status</th>
@@ -372,6 +373,7 @@
                         </td>
                         <td class="fw-bold">{{ m.name }}</td>
                         <td class="text-muted">{{ m.category|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
+                        <td class="text-muted">{{ m.indications|default:"--" }}</td>
                         <td class="fw-semibold">{{ m.quantity_in_stock }} {{ m.unit }}</td>
                         <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
                         <td>

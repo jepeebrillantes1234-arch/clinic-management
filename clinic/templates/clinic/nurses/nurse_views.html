@@ -351,6 +351,21 @@
 </style>
 
 <div class="profile-container ">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if temporary_password %}
+        <div class="alert alert-warning" role="alert">
+            <h5 class="alert-heading">Temporary password (shown once)</h5>
+            <p>Ibigay ito nang direkta sa assistant. Mag-e-expire ito pagkalipas ng isang oras at kailangang palitan sa susunod na login.</p>
+            <code id="temporaryPassword" class="fs-5 user-select-all">{{ temporary_password }}</code>
+            <button type="button" class="btn btn-sm btn-outline-dark ms-2" id="copyTemporaryPassword">Copy</button>
+        </div>
+    {% endif %}
+
     <!-- Main Card -->
     <div class="profile-card">
         <!-- Header Banner -->
@@ -397,6 +412,14 @@
 
             <!-- Action Buttons -->
             <div class="d-flex flex-wrap gap-2 justify-content-center action-buttons-group">
+                {% if nurse.user %}
+                    <form method="post" action="{% url 'nurse_reset_password' nurse.pk %}" class="flex-grow-1" onsubmit="return confirm('Generate a new one-time temporary password for this assistant?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary fw-semibold w-100">
+                            <i class="bi bi-key-fill"></i> Reset Assistant Password
+                        </button>
+                    </form>
+                {% endif %}
                 <a href="{% url 'nurse_edit' nurse.pk %}" class="btn btn-edit-nurse flex-grow-1 d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-pencil-square"></i> Edit Profile
                 </a>
@@ -512,5 +535,13 @@
             }
         });
     });
+</script>
+<script>
+document.getElementById("copyTemporaryPassword")?.addEventListener("click", async function () {
+    const password = document.getElementById("temporaryPassword")?.textContent?.trim();
+    if (!password) return;
+    await navigator.clipboard.writeText(password);
+    this.textContent = "Copied";
+});
 </script>
 {% endblock %}

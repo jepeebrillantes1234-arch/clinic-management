@@ -1,0 +1,55 @@
+{% extends "clinic/base.html" %}
+{% block title %}All Student Records - Print{% endblock %}
+{% block content %}
+<style>
+    .print-roster { color: #111; font: 12px Arial, sans-serif; }
+    .print-roster h1 { font-size: 20px; margin: 0 0 4px; }
+    .print-roster p { margin: 0 0 14px; color: #444; }
+    .print-roster table { width: 100%; border-collapse: collapse; }
+    .print-roster th, .print-roster td { border: 1px solid #777; padding: 5px 6px; text-align: left; vertical-align: top; }
+    .print-roster th { background: #eee; }
+    .print-controls { margin-bottom: 12px; }
+    @page { size: A4 landscape; margin: 10mm; }
+    @media print {
+        @page { size: A4 landscape; margin: 10mm; }
+        body * { visibility: hidden !important; }
+        #student-roster-print, #student-roster-print * { visibility: visible !important; }
+        #student-roster-print { position: absolute; inset: 0; width: 100%; }
+        .print-controls, #appSidebar, #sidebarOverlay, nav, header, footer, .sidebar, .navbar { display: none !important; }
+        body { background: #fff !important; }
+        .print-roster { font-size: 9px; }
+        .print-roster th, .print-roster td { padding: 4px; }
+    }
+</style>
+<div class="print-roster" id="student-roster-print">
+    <div class="print-controls">
+        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+        <a class="btn btn-outline-secondary" href="{% url 'student_records' %}">Back to Students</a>
+    </div>
+    <h1>All Active Student Records</h1>
+    <p>Printed on {% now "M d, Y g:i A" %} | Total: {{ students|length }}</p>
+    <table>
+        <thead><tr>
+            <th>Student ID</th><th>Student Name</th><th>Age</th><th>Gender</th>
+            <th>Course / Year / Section</th><th>Student Contact</th>
+            <th>Mother / Emergency Contact</th><th>Contact Number</th>
+        </tr></thead>
+        <tbody>
+        {% for student in students %}
+            <tr>
+                <td>{{ student.student_id }}</td>
+                <td>{{ student.full_name }}</td>
+                <td>{{ student.age }}</td>
+                <td>{{ student.get_gender_display }}</td>
+                <td>{{ student.course }} / {{ student.year_level }}{% if student.section %} / {{ student.section }}{% endif %}</td>
+                <td>{{ student.contact_number }}</td>
+                <td>{{ student.emergency_contact }}</td>
+                <td>{{ student.emergency_contact_number|default:"--" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="8">No active student records.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
