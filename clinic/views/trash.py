@@ -66,7 +66,7 @@ def trash_list(request):
 def move_to_trash(request, record_type, pk):
     record, label = _record(record_type, pk)
     if record_type == "student":
-        messages.error(request, "Hindi pinapayagan ang pag-delete o paglipat ng student sa Recycle Bin.")
+        messages.error(request, "Students cannot be deleted or moved to the Recycle Bin.")
         return redirect(request.POST.get("next") or "dashboard")
     if record is None:
         messages.error(request, 'Invalid record type.')
@@ -101,7 +101,7 @@ def restore_from_trash(request, record_type, pk):
 def permanently_delete(request, record_type, pk):
     record, label = _record(record_type, pk)
     if record_type == "student":
-        messages.error(request, "Hindi pinapayagan ang permanent deletion ng student records.")
+        messages.error(request, "Student records cannot be permanently deleted.")
         return redirect("trash_list")
     if record is None or not record.is_deleted:
         messages.error(request, 'Only Recycle Bin records can be permanently deleted.')

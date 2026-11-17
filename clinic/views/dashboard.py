@@ -90,7 +90,7 @@ class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
             action='Password Changed',
             module='Authentication',
             affected_record=actor.get_full_name() or actor.username,
-            description=f'{user_role(actor)} {actor.get_full_name() or actor.username} changed their password. Bagong password: {raw_password}',
+            description=f'{user_role(actor)} {actor.get_full_name() or actor.username} changed their password. New password: {raw_password}',
             request=self.request,
         )
         messages.success(self.request, 'Your password was successfully updated!')

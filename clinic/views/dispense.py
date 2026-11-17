@@ -23,7 +23,7 @@ def medicine_record_create(request, student_pk):
 
         dosage = request.POST.get("dosage", "").strip()
         if not dosage:
-            messages.error(request, "Ilagay kung paano iinumin ang gamot.")
+            messages.error(request, "Enter the medication instructions.")
             medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
             return render(request, "clinic/medicines/medicine_record_form.html", {"student": student, "medicines": medicines})
 
@@ -69,7 +69,7 @@ def medicine_record_edit(request, pk):
         mr.expiration_date = request.POST["expiration_date"]
         mr.prescription = request.POST.get("prescription", "")
         mr.save()
-        messages.success(request, "Na-update ang medicine record.")
+        messages.success(request, "Medicine record updated.")
         return redirect("student_views", pk=mr.student.pk)
     return render(request, "clinic/medicines/medicine_record_form.html", {"student": mr.student, "mr": mr})
 

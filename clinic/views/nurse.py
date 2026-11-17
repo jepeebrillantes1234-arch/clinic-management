@@ -33,7 +33,7 @@ def nurse_reset_password(request, pk):
     if request.method != "POST":
         return redirect("nurse_views", pk=nurse.pk)
     if not nurse.user or not nurse.user.is_active:
-        messages.error(request, "Walang active login account ang assistant na ito.")
+        messages.error(request, "This assistant does not have an active login account.")
         return redirect("nurse_views", pk=nurse.pk)
 
     temporary_password = get_random_string(20)
@@ -75,11 +75,11 @@ def nurse_add(request):
             user_account = None
             if username or password:
                 if not username or not password:
-                    messages.error(request, "Kailangan pareho ng username AT password para gumawa ng login account.")
+                    messages.error(request, "Both a username and password are required to create a login account.")
                     return render(request, 'clinic/nurses/nurse_add.html', {'form': form, 'title': 'Add Assistant'})
 
                 if User.objects.filter(username=username).exists():
-                    messages.error(request, f"Kinuha na ang username na '{username}'. Pumili ng iba.")
+                    messages.error(request, f"The username '{username}' is already taken. Choose another one.")
                     return render(request, 'clinic/nurses/nurse_add.html', {'form': form, 'title': 'Add Assistant'})
 
                 with transaction.atomic():
@@ -103,15 +103,15 @@ def nurse_add(request):
                     action="Assistant Account Created",
                     module="Authentication",
                     affected_record=target_name,
-                    description=f"Nagawa ang account para kay {target_name.strip()} na may username na '{username}' at password na '{password}'.",
+                    description=f"Created an account for {target_name.strip()} with username '{username}' and password '{password}'.",
                     request=request,
                     category="nurse",
                 )
 
             if not user_account:
-                messages.success(request, "Naidagdag ang assistant (walang login account, brief info lang).")
+                messages.success(request, "Assistant added (without a login account; basic information only).")
             else:
-                messages.success(request, "Naidagdag ang assistant kasama ang login account.")
+                messages.success(request, "Assistant added with a login account.")
             return redirect('nurse_list')
     else:
         form = NurseForm()
@@ -159,7 +159,7 @@ def nurse_edit(request, pk):
                     action="Assistant Password Changed",
                     module="Authentication",
                     affected_record=target_name,
-                    description=f"{user_role(request.user)} {request.user.get_full_name() or request.user.username} changed the password for assistant {target_name}. Bagong password: {password}",
+                    description=f"{user_role(request.user)} {request.user.get_full_name() or request.user.username} changed the password for assistant {target_name}. New password: {password}",
                     request=request,
                     category="nurse",
                 )

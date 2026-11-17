@@ -634,7 +634,7 @@
                         listContainer.innerHTML = '';
 
                         if (students.length === 0) {
-                            listContainer.innerHTML = `<li class="list-group-item bg-transparent text-adaptive-muted text-center py-3">Wala pang nag-register noong ${monthName}.</li>`;
+                            listContainer.innerHTML = `<li class="list-group-item bg-transparent text-adaptive-muted text-center py-3">No students registered in ${monthName} yet.</li>`;
                         } else {
                             students.forEach(st => {
                                 const li = document.createElement('li');

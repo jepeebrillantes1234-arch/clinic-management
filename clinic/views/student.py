@@ -85,10 +85,10 @@ def student_create(request):
         emergency_contact_name = request.POST.get("emergency_contact", "").strip()
         emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
         if medicine_id and not dosage:
-            messages.error(request, "Ilagay ang dosage o instruction kung may gamot na idi-dispense.")
+            messages.error(request, "Enter the dosage or instructions when dispensing medication.")
             return redirect("student_create")
         if not emergency_contact_name or not re.fullmatch(r"\d{11}", emergency_contact_number):
-            messages.error(request, "Ilagay ang pangalan ng nanay at eksaktong 11-digit na contact number.")
+            messages.error(request, "Enter the mother's name and an exact 11-digit contact number.")
             return redirect("student_create")
         
         if middle_name:
@@ -161,7 +161,7 @@ def student_create(request):
             return redirect("student_records") 
         
         except Exception as e:
-            messages.error(request, f"May error sa pag-save: {str(e)}")
+            messages.error(request, f"An error occurred while saving: {str(e)}")
             return redirect("student_create")
 
     medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
@@ -175,7 +175,7 @@ def student_edit(request, pk):
     if request.method == "POST":
         emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
         if not re.fullmatch(r"\d{11}", emergency_contact_number):
-            messages.error(request, "Eksaktong 11-digit na contact number ng nanay ang kailangan.")
+            messages.error(request, "The mother's contact number must contain exactly 11 digits.")
             return redirect("student_edit", pk=student.pk)
         student.student_id = request.POST.get("student_id", "")
         student.first_name = request.POST.get("first_name", "")
@@ -193,7 +193,7 @@ def student_edit(request, pk):
         student.emergency_contact_number = emergency_contact_number
         
         student.save()
-        messages.success(request, "Na-update ang impormasyon ng student.")
+        messages.success(request, "Student information updated.")
 
         for admin in User.objects.filter(profile__role='admin'):
             Notification.objects.create(

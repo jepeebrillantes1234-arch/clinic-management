@@ -279,7 +279,7 @@
                 <div class="col-12">
                     <label class="cms-label">Student ID <span class="text-danger">*</span></label>
                     <input type="text" name="student_id" class="cms-input" value="{{ student.student_id|default:'' }}" placeholder="e.g. 2026-0001" required>
-                    <div class="invalid-feedback">Mangyaring ilagay ang Student ID.</div>
+                    <div class="invalid-feedback">Please enter the Student ID.</div>
                 </div>
 
                 <div class="col-12 col-md-4">
@@ -291,7 +291,7 @@
                 <div class="col-12 col-md-4">
                     <label class="cms-label">First Name <span class="text-danger">*</span></label>
                     <input type="text" name="first_name" class="cms-input" value="{{ student.first_name|default:'' }}" placeholder="e.g. Juan" required>
-                    <div class="invalid-feedback">Kailangan ang Pangalan.</div>
+                    <div class="invalid-feedback">Name is required.</div>
                 </div>
 
                 <div class="col-12 col-md-4">
@@ -302,7 +302,7 @@
                 <div class="col-6 col-md-4">
                     <label class="cms-label">Age <span class="text-danger">*</span></label>
                     <input type="number" name="age" class="cms-input" value="{{ student.age|default:'' }}" placeholder="e.g. 20" min="1" required>
-                    <div class="invalid-feedback">Ilagay ang wastong edad.</div>
+                    <div class="invalid-feedback">Enter a valid age.</div>
                 </div>
 
                 <div class="col-6 col-md-4">
@@ -326,7 +326,7 @@
            pattern="\d{11}"
            onkeypress="return event.charCode >= 48 && event.charCode <= 57"
            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-           title="Mangyaring maglagay ng eksaktong 11-digit na numero (09...)"
+           title="Please enter an exact 11-digit number (09...)"
            required>
     <div class="invalid-feedback">Dapat 11-digit na numero lamang (e.g., 09123456789).</div>
 </div>
@@ -334,7 +334,7 @@
                 <div class="col-12">
                     <label class="cms-label">Home Address <span class="text-danger">*</span></label>
                     <input type="text" name="address" class="cms-input" value="{{ student.address|default:'' }}" placeholder="Street, Barangay, City, Province" required>
-                    <div class="invalid-feedback">Ilagay ang tirahan.</div>
+                    <div class="invalid-feedback">Enter the address.</div>
                 </div>
             </div>
 
@@ -417,7 +417,7 @@
                 <div class="col-12">
                     <label class="cms-label">Dosage / Paano iinumin</label>
                     <input type="text" name="dosage" class="cms-input"
-                           placeholder="Hal. 1 tablet, 3 beses sa isang araw pagkatapos kumain">
+                           placeholder="e.g. 1 tablet, 3 times a day after meals">
                 </div>
             </div>
             {% endif %}
@@ -429,14 +429,14 @@
 
             <div class="row g-3 mb-4">
                 <div class="col-12 col-md-6">
-                    <label class="cms-label">Pangalan ng Nanay <span class="text-danger">*</span></label>
+                    <label class="cms-label">Mother's Name <span class="text-danger">*</span></label>
                     <input type="text" name="emergency_contact" class="cms-input"
                            value="{{ student.emergency_contact|default:'' }}"
-                           placeholder="Hal. Maria Dela Cruz" required>
-                    <div class="invalid-feedback">Ilagay ang pangalan ng nanay.</div>
+                           placeholder="e.g. Maria Dela Cruz" required>
+                    <div class="invalid-feedback">Enter the mother's name.</div>
                 </div>
                 <div class="col-12 col-md-6">
-                    <label class="cms-label">Contact Number ng Nanay <span class="text-danger">*</span></label>
+                    <label class="cms-label">Mother's Contact Number <span class="text-danger">*</span></label>
                     <input type="text" name="emergency_contact_number" class="cms-input"
                            value="{{ student.emergency_contact_number|default:'' }}"
                            placeholder="09987654321" maxlength="11" pattern="[0-9]{11}"

@@ -235,7 +235,7 @@
         </div>
         <div class="d-none d-sm-block">
             <a href="{% url 'student_views' student.pk %}">Cancel</a>
-                <i class="bi bi-arrow-left"></i> Bumalik
+                <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
     </div>
@@ -260,7 +260,7 @@
                     <i class="bi bi-capsule-solid text-primary"></i> Medicine <span class="text-danger">*</span>
                 </label>
                 <select name="medicine" id="medicineSelect" class="cms-select" required>
-                    <option value="">-- Piliin ang gamot --</option>
+                    <option value="">-- Select a medicine --</option>
                     <optgroup label="Suggested for the entered condition" id="recordSuggestedGroup"></optgroup>
                     <optgroup label="Other in-stock medicines" id="recordOtherGroup">
                     {% for m in medicines %}
@@ -270,7 +270,7 @@
                     {% endfor %}
                     </optgroup>
                 </select>
-                <small class="text-muted">Ilagay ang sakit o sintomas sa field sa ibaba. Lalabas dito ang mga gamot na na-configure ng clinic para sa mga keyword na iyon; piliin lamang matapos ang assessment.</small>
+                <small class="text-muted">Enter the condition or symptoms in the field below. Medicines configured by the clinic for those keywords will appear here; select one only after assessment.</small>
                 <div id="stockNoteContainer" class="d-none">
                     <span class="stock-pill">
                         <i class="bi bi-box-seam"></i> <span id="stockNoteText"></span>
@@ -291,7 +291,7 @@
                 <label class="cms-label">Dosage / Paano iinumin <span class="text-danger">*</span></label>
                 <input type="text" name="dosage" class="cms-input"
                        value="{{ mr.dosage|default:'' }}"
-                       placeholder="Hal. 1 tablet, 3 beses sa isang araw pagkatapos kumain"
+                       placeholder="e.g. 1 tablet, 3 times a day after meals"
                        required>
             </div>
 
@@ -300,14 +300,14 @@
                 <label class="cms-label">
                     <i class="bi bi-file-earmark-medical-fill text-info"></i> Sakit / Sintomas / Dahilan
                 </label>
-                <textarea name="prescription" id="conditionInput" class="cms-textarea" rows="3" placeholder="Ilagay ang sakit o sintomas...">{{ mr.prescription|default:"" }}</textarea>
+                <textarea name="prescription" id="conditionInput" class="cms-textarea" rows="3" placeholder="Enter the condition or symptoms...">{{ mr.prescription|default:"" }}</textarea>
             </div>
 
             <!-- Action Buttons -->
             <div class="button-area">
                 <a href="{% url 'student_views' student.pk %}" class="...">Cancel</a>
                 <button type="submit" class="btn-cms-primary">
-                    <i class="bi bi-check-circle-fill"></i> I-save at Ibawas sa Stock
+                    <i class="bi bi-check-circle-fill"></i> Save and Deduct from Stock
                 </button>
             </div>
 
