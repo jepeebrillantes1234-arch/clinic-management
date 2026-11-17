@@ -312,7 +312,7 @@
                         <option value="M" {% if student.gender == 'M' %}selected{% endif %}>Male</option>
                         <option value="F" {% if student.gender == 'F' %}selected{% endif %}>Female</option>
                     </select>
-                    <div class="invalid-feedback">Pumili ng kasarian.</div>
+                    <div class="invalid-feedback">Please select a gender.</div>
                 </div>
 
                 <div class="col-12 col-md-4">
@@ -346,7 +346,7 @@
     <div class="col-12 col-md-5">
         <label class="cms-label">Course / Program <span class="text-danger">*</span></label>
         <select name="course" class="cms-select" required>
-            <option value="" disabled {% if not student or not student.course %}selected{% endif %}>Pumili ng Course / Program</option>
+            <option value="" disabled {% if not student or not student.course %}selected{% endif %}>Please select a Course / Program</option>
             {% if student.course and student.course != 'BSIT' and student.course != 'BSTM' and student.course != 'BSHM' and student.course != 'BSBA' and student.course != 'BSEDUC' %}
             <option value="{{ student.course }}" selected>{{ student.course }} (Current)</option>
             {% endif %}
