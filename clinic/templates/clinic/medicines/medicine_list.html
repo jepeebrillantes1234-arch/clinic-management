@@ -1,4 +1,4 @@
-{% extends "clinic/base.html" %}
+﻿{% extends "clinic/base.html" %}
 {% load static %}
 
 {% block title %}Medicine Inventory - Clinic Management System{% endblock %}
@@ -331,14 +331,15 @@
     <!-- SEARCH BAR -->
     <div class="cms-card p-3 mb-4 ">
         <form method="get" class="row g-2 align-items-center m-0">
-            <div class="col-12 col-md-8">
+            <div class="col-12 col-md-6">
                 <div class="search-input-group">
                     <i class="bi bi-search search-icon"></i>
                     <input type="text" name="q" class="form-control cms-search-input" placeholder="Search medicine..."
                         value="{{ query|default:'' }}">
                 </div>
             </div>
-            <div class="col-12 col-md-4 d-flex gap-2">
+            <div class="col-12 col-md-3"><select name="status" class="form-select"><option value="">All inventory statuses</option><option value="low_stock" {% if status == 'low_stock' %}selected{% endif %}>Low stock</option><option value="expiring_soon" {% if status == 'expiring_soon' %}selected{% endif %}>Expiring soon</option><option value="expired" {% if status == 'expired' %}selected{% endif %}>Expired</option><option value="out_of_stock" {% if status == 'out_of_stock' %}selected{% endif %}>Out of stock</option></select></div>
+            <div class="col-12 col-md-3 d-flex gap-2">
                 <button type="submit" class="btn-cms-primary flex-grow-1"><i class="bi bi-search"></i> Search</button>
                 {% if query %}<a href="{% url 'medicine_list' %}" class="btn-cms-filter">Clear</a>{% endif %}
             </div>
@@ -354,7 +355,8 @@
                         <th class="text-center">Image</th>
                         <th>Medicine Name</th>
                         <th>Category</th>
-                        <th>Suggested for</th>
+                        <th>Suggested Age</th>
+                        <th>Approved Dosage Instructions</th>
                         <th>Stock</th>
                         <th>Expiration Date</th>
                         <th>Status</th>
@@ -371,13 +373,16 @@
                             <div class="med-thumb-placeholder mx-auto"><i class="bi bi-capsule"></i></div>
                             {% endif %}
                         </td>
-                        <td class="fw-bold">{{ m.name }}</td>
-                        <td class="text-muted">{{ m.category|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
-                        <td class="text-muted">{{ m.indications|default:"--" }}</td>
-                        <td class="fw-semibold">{{ m.quantity_in_stock }} {{ m.unit }}</td>
-                        <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
+                        <td class="fw-bold">{{ m.name }}{% if m.generic_name %}<small class="d-block text-muted">{{ m.generic_name }}{% if m.brand_name %} / {{ m.brand_name }}{% endif %}</small>{% endif %}{% if m.medicine_form or m.strength %}<small class="d-block text-muted">{{ m.medicine_form }} {{ m.strength }}</small>{% endif %}</td>
+                        <td>{{ m.category|default:"Not configured" }}</td>
+                        <td>{% if m.minimum_suggested_age != None or m.maximum_suggested_age != None %}{{ m.minimum_suggested_age|default_if_none:"No minimum" }} - {{ m.maximum_suggested_age|default_if_none:"No maximum" }}{% else %}<span class="text-muted">Not configured</span>{% endif %}</td>
+                        <td class="text-muted" title="{{ m.approved_dosage_instructions }}">{{ m.approved_dosage_instructions|default:"Not configured"|truncatechars:70 }}</td>
+                        <td class="fw-semibold">{{ m.available_stock }} available / {{ m.quantity_in_stock }} total {{ m.unit }}</td>
+                        <td class="text-muted">{{ m.expiration_date|date:"M d, Y"|default:"ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â" }}</td>
                         <td>
-                            {% if m.is_low_stock %}
+                            {% if m.is_expired %}<span class="badge-status badge-danger">Expired</span>
+                            {% elif m.is_out_of_stock %}<span class="badge-status badge-danger">Out of Stock</span>
+                            {% elif m.is_low_stock %}
                             <span class="badge-status badge-danger"><i class="bi bi-exclamation-circle-fill"></i> Low
                                 Stock</span>
                             {% elif m.is_expiring_soon %}
@@ -400,9 +405,10 @@
                             </div>
                         </td>
                     </tr>
+                    <tr><td colspan="9" class="pt-0"><details><summary class="small text-muted">Batch details ({{ m.batches.count }})</summary><div class="table-responsive mt-2"><table class="table table-sm"><thead><tr><th>Batch</th><th>Supplier</th><th>Date received</th><th>Quantity</th><th>Expiration</th><th>Status</th></tr></thead><tbody>{% for b in m.batches.all %}<tr><td>{{ b.batch_number|default:"Not recorded" }}</td><td>{{ b.supplier|default:"Not recorded" }}</td><td>{{ b.date_received|date:"M d, Y"|default:"Not recorded" }}</td><td>{{ b.quantity_in_stock }} {{ b.unit|default:m.unit }}</td><td>{{ b.expiration_date|date:"M d, Y"|default:"Not recorded" }}</td><td>{% if b.quantity_in_stock == 0 %}Out of Stock{% elif b.expiration_date and b.expiration_date < today %}Expired{% else %}In Stock{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted">No batch details recorded.</td></tr>{% endfor %}</tbody></table></div></details></td></tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center py-5">
+                        <td colspan="9" class="text-center py-5">
                             <i class="bi bi-inbox display-5 text-muted d-block mb-2"></i>
                             <h6 class="fw-bold">No Medicines Found</h6>
                         </td>
@@ -480,3 +486,4 @@
 </script>
 
 {% endblock %}
+

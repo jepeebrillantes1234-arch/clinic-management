@@ -499,17 +499,37 @@
 
     @media print {
         @page { size: A4 portrait; margin: 12mm; }
+        html, body { display: block !important; width: auto !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; color: #111 !important; }
+        *, *::before, *::after { color: #111 !important; background-color: #fff !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        #student-print-area, #student-print-area * { color: #111 !important; background-color: #fff !important; }
         body * { visibility: hidden !important; }
         #student-print-area, #student-print-area * { visibility: visible !important; }
-        #student-print-area { position: absolute; inset: 0; width: 100%; color: #111 !important; background: #fff !important; }
-        #student-print-area .no-print,
-        #student-print-area .hero-actions,
-        #student-print-area .table-action-link,
-        #student-print-area th:last-child,
+        .main-container, .content-main, .content-inner { display: block !important; width: 100% !important; max-width: none !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; background-image: none !important; }
+        .content-overlay { display: none !important; }
+        #student-print-area { position: static !important; inset: auto !important; display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; color: #111 !important; background: #fff !important; font-size: 9pt !important; }
+        #appSidebar, #sidebarOverlay, #medModalOverlay, nav, header, footer, .sidebar, .navbar, .toast-container-custom,
+        #student-print-area .no-print, #student-print-area .hero-actions,
+        #student-print-area .table-action-link, #student-print-area th:last-child,
         #student-print-area td:last-child { display: none !important; }
-        #student-print-area .cms-card,
-        #student-print-area .dashboard-hero-card { box-shadow: none !important; background: #fff !important; border-color: #bbb !important; break-inside: avoid; }
-        #student-print-area .cms-table th, #student-print-area .cms-table td { color: #111 !important; background: #fff !important; }
+        #student-print-area .cms-card, #student-print-area .dashboard-hero-card { box-shadow: none !important; background: #fff !important; border: 1px solid #777 !important; border-radius: 0 !important; }
+        #student-print-area .student-info-print-card { break-inside: avoid !important; page-break-inside: avoid !important; }
+        #student-print-area .student-records-print-card { overflow: visible !important; }
+        #student-print-area .cms-table-responsive, #student-print-area .table-responsive { overflow: visible !important; }
+        #student-print-area .cms-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+        #student-print-area .cms-table th:nth-child(1) { width: 13% !important; }
+        #student-print-area .cms-table th:nth-child(2) { width: 19% !important; }
+        #student-print-area .cms-table th:nth-child(3) { width: 16% !important; }
+        #student-print-area .cms-table th:nth-child(4) { width: 7% !important; }
+        #student-print-area .cms-table th:nth-child(5) { width: 13% !important; }
+        #student-print-area .cms-table th:nth-child(6) { width: 19% !important; }
+        #student-print-area .cms-table th:nth-child(7) { width: 13% !important; }
+        #student-print-area .cms-table th, #student-print-area .cms-table td { color: #111 !important; background: #fff !important; border: 1px solid #555 !important; padding: 4px 3px !important; font-size: 7.5pt !important; overflow-wrap: anywhere !important; }
+        #student-print-area .cms-table thead { display: table-header-group !important; }
+        #student-print-area .cms-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+        #student-print-area .info-item { break-inside: avoid !important; page-break-inside: avoid !important; }
+        #student-print-area .hero-title { color: #111 !important; font-size: 17pt !important; }
+        #student-print-area .hero-subtitle, #student-print-area .info-label, #student-print-area .info-value { color: #111 !important; }
+        #student-print-area .badge, #student-print-area .inline-code-badge { color: #111 !important; border: 1px solid #777 !important; }
     }
 
     .recycle-flight { position: fixed; z-index: 3000; pointer-events: none; transition: transform .48s cubic-bezier(.2,.8,.2,1), opacity .48s ease; }
@@ -549,7 +569,7 @@
     </div>
 
     <!-- 2. PERSONAL & ACADEMIC INFORMATION CARD -->
-    <div class="cms-card p-4 p-md-4 mb-4">
+    <div class="cms-card p-4 p-md-4 mb-4 student-info-print-card">
         <div class="section-header-title mb-3">
             <i class="bi bi-card-text"></i> Student Information
         </div>
@@ -560,7 +580,7 @@
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-person-badge"></i> Student ID</span>
                     <span class="info-value">
-                        <span class="inline-code-badge">{{ student.student_id|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                        <span class="inline-code-badge">{{ student.student_id|default:"—" }}</span>
                     </span>
                 </div>
                 <div class="info-item">
@@ -585,19 +605,19 @@
             <div class="col-12 col-md-6">
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-mortarboard"></i> Course</span>
-                    <span class="info-value text-primary font-weight-bold">{{ student.course|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value text-primary font-weight-bold">{{ student.course|default:"—" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-layers"></i> Year Level</span>
                     <span class="info-value">
                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
-                            {{ student.year_level|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}
+                            {{ student.year_level|default:"—" }}
                         </span>
                     </span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-door-open"></i> Section</span>
-                    <span class="info-value">{{ student.section|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</span>
+                    <span class="info-value">{{ student.section|default:"—" }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label"><i class="bi bi-telephone-inbound"></i> Emergency Contact</span>
@@ -612,12 +632,12 @@
         <div class="section-header-title m-0">
             <i class="bi bi-capsule"></i> Dispensing & Medicine Records
         </div>
-        <a href="{% url 'medicine_record_create' student.pk %}" class="btn-cms-primary">
+        <a href="{% url 'medicine_record_create' student.pk %}" class="btn-cms-primary no-print">
             <i class="bi bi-plus-lg"></i> Add Record
         </a>
     </div>
 
-    <div class="cms-card p-0 mb-4 overflow-hidden">
+    <div class="cms-card p-0 mb-4 student-records-print-card">
         <div class="cms-table-responsive table-responsive">
             <table class="cms-table">
                 <thead>
@@ -639,15 +659,15 @@
                             <i class="bi bi-clock-history me-1 text-muted"></i> {{ mr.date_released|date:"M d, Y" }}
                         </td>
                         <td class="fw-bold">{{ mr.medicine_name }}</td>
-                        <td>{{ mr.dosage|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
+                        <td>{{ mr.dosage|default:"—" }}</td>
                         <td>
-                            <span class="badge bg-secondary-subtle text-body px-2 py-1">{{ mr.quantity }} pcs</span>
+                            <span class="badge bg-secondary-subtle text-body px-2 py-1">{{ mr.quantity }} {{ mr.medicine.unit|default:"pcs" }}</span>
                         </td>
-                        <td>{{ mr.expiration_date|date:"M d, Y"|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
-                        <td>{{ mr.prescription|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}</td>
+                        <td>{{ mr.expiration_date|date:"M d, Y"|default:"—" }}</td>
+                        <td>{{ mr.prescription|default:"—" }}</td>
                         <td>
                             <span class="text-capitalize">
-                                <i class="bi bi-person-check me-1 text-muted"></i> {{ mr.dispensed_by.username|default:"ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â" }}
+                                <i class="bi bi-person-check me-1 text-muted"></i> {{ mr.dispensed_by.username|default:"—" }}
                             </span>
                         </td>
                         <td class="text-center">

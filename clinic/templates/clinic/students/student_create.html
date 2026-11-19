@@ -388,6 +388,22 @@
                 <div class="col-12 col-md-6">
                     <label class="cms-label">Symptoms / Reason</label>
                     <input type="text" name="reason" id="initialReasonInput" class="cms-input" placeholder="e.g. Headache, Fever, Stomachache">
+                    <div id="medicineSuggestionStatus" class="small mt-2 text-muted" role="status" aria-live="polite">
+                        Suggestions use saved medicine categories for staff assistance only, not a diagnosis or prescription.
+                    </div>
+                    <div id="primarySuggestionCard" class="card border-primary border-start border-4 shadow-sm mt-3" hidden aria-live="polite">
+                        <div class="card-body py-3">
+                            <div id="primarySuggestionLabel" class="small fw-bold text-primary text-uppercase mb-1">Primary Suggestion</div>
+                            <div id="primarySuggestionName" class="fs-5 fw-bold"></div>
+                            <div id="primarySuggestionCategory" class="small text-muted mt-1"></div>
+                            <div id="primarySuggestionStock" class="small fw-semibold mt-1"></div>
+                            <button type="button" id="primaryNoMedicineButton" class="btn btn-sm btn-outline-secondary mt-2" hidden>Choose No Medicine Needed</button>
+                        </div>
+                    </div>
+                    <div id="otherSuggestionsWrap" class="mt-2" hidden>
+                        <div class="small fw-semibold text-muted text-uppercase mb-1">Other Suggestions</div>
+                        <div id="otherSuggestionsList" class="d-flex flex-wrap gap-2"></div>
+                    </div>
                 </div>
 
                 <div class="col-12 col-md-6">
@@ -398,26 +414,20 @@
                 <div class="col-12 col-md-8">
                     <label class="cms-label">Medicine to Dispense</label>
                     <select name="medicine" id="initialMedicineSelect" class="cms-select">
-                        <option value="">-- No Medicine Needed --</option>
+                        <option value="">No Medicine Needed</option>
                         <optgroup label="Suggested for the entered condition" id="initialSuggestedGroup"></optgroup>
                         <optgroup label="Other in-stock medicines" id="initialOtherGroup">
                         {% for med in medicines %}
-                            <option value="{{ med.id }}" data-indications="{{ med.indications|lower|escape }}">{{ med.name }} (Stock: {{ med.quantity_in_stock }} {{ med.unit }})</option>
+                            <option value="{{ med.id }}" data-name="{{ med.name|escape }}" data-category="{{ med.category|default:'Uncategorized'|escape }}" data-stock="{{ med.quantity_in_stock }}" data-unit="{{ med.unit }}">{{ med.name }} ({{ med.category|default:"Uncategorized" }}, Stock: {{ med.quantity_in_stock }} {{ med.unit }})</option>
                         {% endfor %}
                         </optgroup>
                     </select>
-                    <small class="text-muted">Clinic-configured suggestions only; assistant must assess and choose.</small>
+                    <input type="hidden" name="medicine_selection_valid" id="medicineSelectionValid" value="true">
+                    <small class="text-muted">Select a medicine or choose No Medicine Needed.</small>
                 </div>
-
-                <div class="col-12 col-md-4">
-                    <label class="cms-label">Quantity</label>
-                    <input type="number" name="quantity" class="cms-input" min="1" value="1">
-                </div>
-
                 <div class="col-12">
-                    <label class="cms-label">Dosage / Paano iinumin</label>
-                    <input type="text" name="dosage" class="cms-input"
-                           placeholder="e.g. 1 tablet, 3 times a day after meals">
+                    <label class="cms-label">Dosage / Administration Instructions</label>
+                    <input type="text" name="dosage" class="cms-input" placeholder="Enter clinic-approved instructions">
                 </div>
             </div>
             {% endif %}
@@ -479,27 +489,199 @@
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const reason = document.getElementById("initialReasonInput");
+    const ageInput = document.querySelector('[name="age"]');
     const select = document.getElementById("initialMedicineSelect");
     const suggested = document.getElementById("initialSuggestedGroup");
     const other = document.getElementById("initialOtherGroup");
-    if (!reason || !select || !suggested || !other) return;
+    const status = document.getElementById("medicineSuggestionStatus");
+    const primaryCard = document.getElementById("primarySuggestionCard");
+    const primaryLabel = document.getElementById("primarySuggestionLabel");
+    const primaryName = document.getElementById("primarySuggestionName");
+    const primaryCategory = document.getElementById("primarySuggestionCategory");
+    const primaryStock = document.getElementById("primarySuggestionStock");
+    const noMedicineButton = document.getElementById("primaryNoMedicineButton");
+    const selectionValidInput = document.getElementById("medicineSelectionValid");
+    const otherSuggestionsWrap = document.getElementById("otherSuggestionsWrap");
+    const otherSuggestionsList = document.getElementById("otherSuggestionsList");
+    if (!reason || !select || !suggested || !other || !status) return;
     const options = Array.from(other.querySelectorAll("option"));
-    function updateSuggestions() {
-        const query = reason.value.trim().toLowerCase();
-        suggested.replaceChildren();
-        other.replaceChildren();
-        const matches = [];
-        const rest = [];
-        options.forEach(option => {
-            const tags = (option.dataset.indications || "").split(",").map(value => value.trim()).filter(Boolean);
-            const match = query && tags.some(tag => tag.includes(query) || query.includes(tag));
-            (match ? matches : rest).push(option);
-        });
-        matches.forEach(option => suggested.appendChild(option));
-        rest.forEach(option => other.appendChild(option));
-        suggested.hidden = matches.length === 0;
+    const optionsById = new Map(options.map(option => [option.value, option]));
+    const originalLabels = new Map(options.map(option => [option.value, option.textContent]));
+    let requestNumber = 0;
+    let debounceTimer;
+    let selectionMode = "none";
+    let invalidSelectionWasAuto = false;
+    let settingProgrammatically = false;
+    let currentSuggestions = [];
+    function renderPrimary(item, label) {
+        primaryCard.hidden = false;
+        primaryLabel.textContent = label;
+        primaryName.textContent = item ? item.name : "No Medicine Needed";
+        primaryCategory.textContent = item && item.category ? "Category: " + item.category : "";
+        primaryStock.textContent = item ? "Available stock: " + item.stock + " " + item.unit : "";
     }
-    reason.addEventListener("input", updateSuggestions);
+
+    function selectedMedicineData() {
+        if (!select.value) return null;
+        const option = optionsById.get(select.value);
+        if (!option) return null;
+        return {
+            id: select.value,
+            name: option.dataset.name || originalLabels.get(select.value) || option.textContent.trim(),
+            category: option.dataset.category || "Uncategorized",
+            stock: option.dataset.stock || "0",
+            unit: option.dataset.unit || "pcs"
+        };
+    }
+
+    function renderSelectedMedicine() {
+        if (!select.value) {
+            if (selectionMode === "invalid") {
+                renderPrimary({name: "The previous medicine is no longer eligible."}, "Selection Required");
+                noMedicineButton.hidden = false;
+            } else {
+                renderPrimary(null, "Current Selection");
+                noMedicineButton.hidden = true;
+            }
+            return;
+        }
+        noMedicineButton.hidden = true;
+        const selected = currentSuggestions.find(item => String(item.id) === select.value) || selectedMedicineData();
+        renderPrimary(selected, selectionMode === "auto" ? "Primary Suggestion" : "Selected Medicine");
+    }
+
+    function renderOtherSuggestions() {
+        otherSuggestionsList.replaceChildren();
+        const remaining = currentSuggestions.filter(item => String(item.id) !== select.value);
+        otherSuggestionsWrap.hidden = remaining.length === 0;
+        remaining.forEach(item => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "btn btn-sm btn-outline-primary text-start";
+            button.textContent = item.name + " · " + item.category + " · " + item.stock + " " + item.unit;
+            button.addEventListener("click", function () {
+                setSelection(item.id, "manual");
+            });
+            otherSuggestionsList.appendChild(button);
+        });
+    }
+
+    function setSelection(id, mode) {
+        settingProgrammatically = true;
+        select.value = id ? String(id) : "";
+        settingProgrammatically = false;
+        selectionMode = mode;
+        if (mode !== "invalid") invalidSelectionWasAuto = false;
+        selectionValidInput.value = mode === "invalid" ? "false" : "true";
+        renderSelectedMedicine();
+        renderOtherSuggestions();
+    }
+
+    async function updateSuggestions() {
+        const currentRequest = ++requestNumber;
+        const params = new URLSearchParams({
+            symptoms: reason.value,
+            patient_age: document.querySelector('[name="age"]')?.value || ""
+        });
+        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || "";
+        status.textContent = "Checking medicine categories...";
+        status.classList.remove("text-danger", "text-warning");
+
+        try {
+            const response = await fetch("{% url 'medicine_suggestions' %}", {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+                },
+                body: params.toString()
+            });
+            if (!response.ok) throw new Error("Suggestion lookup failed");
+            const result = await response.json();
+            if (currentRequest !== requestNumber) return;
+
+            currentSuggestions = result.suggestions;
+            const availableIds = new Set(result.available_medicine_ids.map(String));
+            const suggestedIds = new Set(currentSuggestions.map(item => String(item.id)));
+            suggested.replaceChildren();
+            other.replaceChildren();
+            options.forEach(option => {
+                option.disabled = !availableIds.has(option.value);
+                if (suggestedIds.has(option.value)) {
+                    const item = currentSuggestions.find(candidate => String(candidate.id) === option.value);
+                    option.dataset.name = item.name;
+                    option.dataset.category = item.category;
+                    option.dataset.stock = item.stock;
+                    option.dataset.unit = item.unit;
+                    option.textContent = "Suggested: " + item.name + " — " + item.category + " (Stock: " + item.stock + " " + item.unit + ")";
+                    suggested.appendChild(option);
+                } else {
+                    option.textContent = originalLabels.get(option.value) || option.textContent;
+                    other.appendChild(option);
+                }
+            });
+            suggested.hidden = currentSuggestions.length === 0;
+
+            const oldValue = select.value;
+            const oldMode = selectionMode;
+            if (oldMode === "auto" || oldMode === "none" || (oldMode === "invalid" && invalidSelectionWasAuto)) {
+                if (currentSuggestions.length) {
+                    setSelection(currentSuggestions[0].id, "auto");
+                } else {
+                    if (oldMode === "auto" && oldValue) {
+                        setSelection("", "invalid");
+                        invalidSelectionWasAuto = true;
+                        status.textContent = "The previous automatic selection no longer matches available suggestions. Choose a valid medicine manually or select No Medicine Needed.";
+                        status.classList.add("text-warning");
+                    } else if (oldMode === "invalid" && invalidSelectionWasAuto) {
+                        setSelection("", "invalid");
+                        invalidSelectionWasAuto = true;
+                    }
+                }
+            } else if (oldMode === "manual" && oldValue && !availableIds.has(oldValue)) {
+                setSelection("", "invalid");
+                invalidSelectionWasAuto = false;
+                status.textContent = "The selected medicine is no longer available. Choose a valid medicine or select No Medicine Needed.";
+                status.classList.add("text-warning");
+            } else {
+                renderSelectedMedicine();
+                renderOtherSuggestions();
+            }
+
+            if (!status.classList.contains("text-warning")) status.textContent = result.message;
+            if (result.status === "no_category_match" || result.status === "no_available_medicine") status.classList.add("text-warning");
+        } catch (error) {
+            if (currentRequest !== requestNumber) return;
+            status.textContent = "Category suggestions are unavailable. Staff can still select an available medicine manually after assessment.";
+            status.classList.add("text-warning");
+        }
+    }
+
+    function scheduleUpdate() {
+        window.clearTimeout(debounceTimer);
+        debounceTimer = window.setTimeout(updateSuggestions, 250);
+    }
+
+    reason.addEventListener("input", scheduleUpdate);
+    ageInput?.addEventListener("input", scheduleUpdate);
+    reason.addEventListener("input", () => {
+        status.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Checking medicine categories...';
+    });
+
+    select.addEventListener("change", function () {
+        if (!settingProgrammatically) {
+            selectionMode = "manual";
+            invalidSelectionWasAuto = false;
+            selectionValidInput.value = "true";
+        }
+        renderSelectedMedicine();
+        renderOtherSuggestions();
+    });
+    noMedicineButton.addEventListener("click", function () {
+        setSelection("", "manual");
+    });
+
     updateSuggestions();
 });
 </script>

@@ -254,28 +254,46 @@
         <form method="post" id="medicineRecordForm">
             {% csrf_token %}
 
+            <!-- Symptoms / Reason first -->
+            <div class="mb-4">
+                <label class="cms-label">
+                    <i class="bi bi-file-earmark-medical-fill text-info"></i> Sakit / Sintomas / Dahilan
+                </label>
+                <textarea name="prescription" id="conditionInput" class="cms-textarea" rows="3" placeholder="Enter the condition or symptoms...">{{ mr.prescription|default:"" }}</textarea>
+                <div id="recordSuggestionStatus" class="small mt-2 text-muted" role="status" aria-live="polite">Student age: {{ student.age }}. Enter symptoms to check eligible medicines.</div>
+                <div id="recordSuggestionList" class="row g-2 mt-2" aria-live="polite"></div>
+            </div>
+
             <!-- Medicine Selection -->
             <div class="mb-4">
                 <label class="cms-label">
                     <i class="bi bi-capsule-solid text-primary"></i> Medicine <span class="text-danger">*</span>
                 </label>
                 <select name="medicine" id="medicineSelect" class="cms-select" required>
-                    <option value="">-- Select a medicine --</option>
-                    <optgroup label="Suggested for the entered condition" id="recordSuggestedGroup"></optgroup>
-                    <optgroup label="Other in-stock medicines" id="recordOtherGroup">
+                    <option value="">-- Select an eligible medicine --</option>
+                    <optgroup label="Matching suggestions" id="recordSuggestedGroup"></optgroup>
+                    <optgroup label="Other eligible medicines" id="recordOtherGroup">
                     {% for m in medicines %}
-                    <option value="{{ m.pk }}" data-stock="{{ m.quantity_in_stock }}" data-unit="{{ m.unit }}" data-indications="{{ m.indications|lower|escape }}">
-                        {{ m.name }} ({{ m.quantity_in_stock }} {{ m.unit }} natitira)
+                    <option value="{{ m.pk }}" data-stock="{{ m.quantity_in_stock }}" data-unit="{{ m.unit }}" data-category="{{ m.category|default:'Uncategorized'|escape }}" data-dosage="{{ m.approved_dosage_instructions|escape }}">
+                        {{ m.name }} ({{ m.category|default:"Uncategorized" }}, stock: {{ m.quantity_in_stock }} {{ m.unit }})
                     </option>
                     {% endfor %}
                     </optgroup>
                 </select>
-                <small class="text-muted">Enter the condition or symptoms in the field below. Medicines configured by the clinic for those keywords will appear here; select one only after assessment.</small>
+                <small class="text-muted">Only medicines that pass age, stock, expiration, and recorded contraindication checks appear. You may manually choose another eligible medicine.</small>
                 <div id="stockNoteContainer" class="d-none">
-                    <span class="stock-pill">
-                        <i class="bi bi-box-seam"></i> <span id="stockNoteText"></span>
-                    </span>
+                    <span class="stock-pill"><i class="bi bi-box-seam"></i> <span id="stockNoteText"></span></span>
                 </div>
+            </div>
+
+            <!-- Dosage / Instructions -->
+            <div class="mb-4">
+                <label class="cms-label">Dosage / Paano Iinumin <span class="text-danger">*</span></label>
+                <input type="text" name="dosage" class="cms-input"
+                       value="{{ mr.dosage|default:'' }}"
+                       placeholder="Review and enter the final dosage instructions"
+                       required>
+                <small id="approvedDosageGuidance" class="form-text text-muted">Select a medicine to view any approved dosage guidance.</small>
             </div>
 
             <!-- Quantity -->
@@ -284,23 +302,6 @@
                     <i class="bi bi-cart-plus-fill text-warning"></i> Quantity <span class="text-danger">*</span>
                 </label>
                 <input type="number" name="quantity" id="quantityInput" class="cms-input" min="1" value="1" required>
-            </div>
-
-            <!-- Dosage / Instructions -->
-            <div class="mb-4">
-                <label class="cms-label">Dosage / Paano iinumin <span class="text-danger">*</span></label>
-                <input type="text" name="dosage" class="cms-input"
-                       value="{{ mr.dosage|default:'' }}"
-                       placeholder="e.g. 1 tablet, 3 times a day after meals"
-                       required>
-            </div>
-
-            <!-- Sakit / Sintomas / Dahilan -->
-            <div class="mb-4">
-                <label class="cms-label">
-                    <i class="bi bi-file-earmark-medical-fill text-info"></i> Sakit / Sintomas / Dahilan
-                </label>
-                <textarea name="prescription" id="conditionInput" class="cms-textarea" rows="3" placeholder="Enter the condition or symptoms...">{{ mr.prescription|default:"" }}</textarea>
             </div>
 
             <!-- Action Buttons -->
@@ -326,26 +327,108 @@
         const conditionInput = document.getElementById('conditionInput');
         const suggestedGroup = document.getElementById('recordSuggestedGroup');
         const otherGroup = document.getElementById('recordOtherGroup');
+        const suggestionStatus = document.getElementById('recordSuggestionStatus');
 
-        if (medicineSelect && conditionInput && suggestedGroup && otherGroup) {
-            const medicineOptions = Array.from(otherGroup.querySelectorAll('option'));
-            const updateSuggestions = () => {
-                const queryTerms = conditionInput.value.toLowerCase().split(/[,;\n]+/).map(term => term.trim()).filter(Boolean);
-                suggestedGroup.replaceChildren();
-                otherGroup.replaceChildren();
-                const matches = [];
-                const rest = [];
-                medicineOptions.forEach(option => {
-                    const tags = (option.dataset.indications || '').split(',').map(tag => tag.trim()).filter(Boolean);
-                    const isSuggested = queryTerms.some(term => tags.some(tag => tag.includes(term) || term.includes(tag)));
-                    (isSuggested ? matches : rest).push(option);
-                });
-                matches.forEach(option => suggestedGroup.appendChild(option));
-                rest.forEach(option => otherGroup.appendChild(option));
-                suggestedGroup.hidden = matches.length === 0;
+        const suggestionList = document.getElementById('recordSuggestionList');
+        const approvedDosageGuidance = document.getElementById('approvedDosageGuidance');
+        let suggestionTimer;
+        let suggestionRequest = 0;
+        if (medicineSelect && conditionInput && suggestionList) {
+            const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || '';
+            const originalOptions = Array.from(otherGroup.querySelectorAll('option'));
+            const originalLabels = new Map(originalOptions.map(option => [option.value, option.textContent.trim()]));
+            const loadSuggestions = async () => {
+                const requestId = ++suggestionRequest;
+                suggestionStatus.textContent = 'Checking age, category, stock, and safety information...';
+                suggestionList.replaceChildren();
+                try {
+                    const response = await fetch("{% url 'medicine_suggestions' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                        },
+                        body: new URLSearchParams({
+                            symptoms: conditionInput.value,
+                            student_pk: '{{ student.pk }}'
+                        }).toString()
+                    });
+                    if (!response.ok) throw new Error('Suggestion request failed');
+                    const result = await response.json();
+                    if (requestId !== suggestionRequest) return;
+                    const previousSelection = medicineSelect.value;
+                    const eligibleIds = new Set((result.eligible_medicine_ids || []).map(String));
+                    const suggestionById = new Map((result.suggestions || []).map(item => [String(item.id), item]));
+                    suggestedGroup.replaceChildren();
+                    otherGroup.replaceChildren();
+                    originalOptions.forEach(option => {
+                        if (!eligibleIds.has(option.value)) {
+                            option.remove();
+                            return;
+                        }
+                        const item = suggestionById.get(option.value);
+                        if (item) {
+                            option.dataset.stock = item.stock;
+                            option.dataset.unit = item.unit;
+                            option.dataset.category = item.category || 'Uncategorized';
+                            option.dataset.dosage = item.dosage_instructions === 'Dosage instructions require clinic review.' ? '' : item.dosage_instructions;
+                            option.textContent = `${item.name} (${item.category || 'Uncategorized'}, stock: ${item.stock} ${item.unit})`;
+                            suggestedGroup.appendChild(option);
+                        } else {
+                            option.textContent = originalLabels.get(option.value);
+                            otherGroup.appendChild(option);
+                        }
+                    });
+                    suggestedGroup.hidden = suggestionById.size === 0;
+                    otherGroup.hidden = otherGroup.children.length === 0;
+                    if (previousSelection && !eligibleIds.has(previousSelection)) {
+                        medicineSelect.value = '';
+                        suggestionStatus.textContent = 'The selected medicine no longer passes age, stock, expiration, or contraindication checks. Select an eligible medicine.';
+                        medicineSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        suggestionStatus.textContent = result.message;
+                    }
+                    if (previousSelection && eligibleIds.has(previousSelection)) medicineSelect.value = previousSelection;
+
+                    (result.suggestions || []).forEach(item => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'col-12 col-lg-6';
+                        const card = document.createElement('div');
+                        card.className = 'card h-100 border-primary-subtle';
+                        const body = document.createElement('div');
+                        body.className = 'card-body';
+                        const heading = document.createElement('div');
+                        heading.className = 'fw-bold fs-5';
+                        heading.textContent = item.name;
+                        const detail = document.createElement('div');
+                        detail.className = 'small text-muted mt-2';
+                        detail.textContent = `Category: ${item.category || 'Uncategorized'} | Patient age: ${item.patient_age} | Allowed age: ${item.age_range} | Stock: ${item.stock} ${item.unit}`;
+                        const dosage = document.createElement('div');
+                        dosage.className = 'small mt-2';
+                        dosage.textContent = `Approved dosage: ${item.dosage_instructions}`;
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'btn btn-sm btn-outline-primary mt-3';
+                        button.textContent = 'Select for review';
+                        button.addEventListener('click', () => {
+                            medicineSelect.value = String(item.id);
+                            medicineSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        });
+                        body.append(heading, detail, dosage, button);
+                        card.appendChild(body);
+                        wrapper.appendChild(card);
+                        suggestionList.appendChild(wrapper);
+                    });
+                } catch (error) {
+                    if (requestId === suggestionRequest) suggestionStatus.textContent = 'Suggestions are unavailable. Review the student and select a medicine manually.';
+                }
             };
-            conditionInput.addEventListener('input', updateSuggestions);
-            updateSuggestions();
+            conditionInput.addEventListener('input', () => {
+                window.clearTimeout(suggestionTimer);
+                suggestionTimer = window.setTimeout(loadSuggestions, 250);
+            });
+            loadSuggestions();
         }
 
         if (medicineSelect) {
@@ -353,6 +436,12 @@
                 const selected = this.options[this.selectedIndex];
                 const stock = selected.getAttribute('data-stock');
                 const unit = selected.getAttribute('data-unit');
+                const dosageGuidance = selected.dataset.dosage || '';
+                if (approvedDosageGuidance) {
+                    approvedDosageGuidance.textContent = dosageGuidance
+                        ? `Approved dosage guidance: ${dosageGuidance} Review it and enter the final dosage above.`
+                        : 'Dosage instructions require clinic review. Enter the final dosage only after staff review.';
+                }
 
                 if (stock) {
                     stockNoteText.textContent = `Available stock: ${stock} ${unit}`;

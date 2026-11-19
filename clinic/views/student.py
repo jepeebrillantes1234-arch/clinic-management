@@ -1,4 +1,7 @@
 import re
+from datetime import date
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -6,7 +9,9 @@ from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.models import User
 from clinic.decorators import role_required
-from clinic.models import ActivityLog, Medicine, MedicineRecord, Notification, Student, Nurse
+from clinic.models import ActivityLog, Medicine, MedicineRecord, MedicineRecordBatch, Notification, Student, StudentMedicalRequest, Nurse
+from clinic.medicine_suggestions import find_medicine_suggestions, medicine_age_allowed
+from clinic.inventory import allocate_fefo, InsufficientStock
 
 
 
@@ -69,26 +74,34 @@ def student_views(request, pk):
 @role_required("admin", "nurse")
 def student_create(request):
     if request.method == "POST":
-        reason = request.POST.get("reason")
-        medicine_id = request.POST.get("medicine")
+        reason = request.POST.get("reason", "").strip()
+        medicine_id = request.POST.get("medicine", "").strip()
         dosage = request.POST.get("dosage", "").strip()
-        quantity_input = request.POST.get("quantity", 1)
+        if request.POST.get("medicine_selection_valid", "true") != "true":
+            messages.error(request, "Your previous medicine selection is no longer valid. Choose an available medicine or explicitly select No Medicine Needed.")
+            return redirect("student_create")
 
-        try:
-            qty = int(quantity_input) if quantity_input else 1
-        except ValueError:
-            qty = 1
+        # Quantity is not collected on the Add Student request form; dispensing this
+        # optional initial medicine uses one unit and retains stock validation.
+        qty = 1
+
+        if medicine_id and not dosage:
+            messages.error(request, "Enter dosage or administration instructions for the selected medicine.")
+            return redirect("student_create")
 
         first_name = request.POST.get("first_name", "").strip()
         middle_name = request.POST.get("middle_name", "").strip()
         last_name = request.POST.get("last_name", "").strip()
         emergency_contact_name = request.POST.get("emergency_contact", "").strip()
         emergency_contact_number = request.POST.get("emergency_contact_number", "").strip()
-        if medicine_id and not dosage:
-            messages.error(request, "Enter the dosage or instructions when dispensing medication.")
-            return redirect("student_create")
         if not emergency_contact_name or not re.fullmatch(r"\d{11}", emergency_contact_number):
             messages.error(request, "Enter the mother's name and an exact 11-digit contact number.")
+            return redirect("student_create")
+
+        try:
+            student_age = int(request.POST.get("age", ""))
+        except (TypeError, ValueError):
+            messages.error(request, "Enter a valid student age.")
             return redirect("student_create")
         
         if middle_name:
@@ -98,13 +111,29 @@ def student_create(request):
 
         try:
             with transaction.atomic():
+                medicine = None
+                if medicine_id:
+                    medicine = Medicine.objects.select_for_update().filter(
+                        pk=medicine_id,
+                        is_deleted=False,
+                    ).first()
+                    if medicine is None:
+                        messages.error(request, "The selected medicine is no longer available or has expired. Choose an available medicine or No Medicine Needed.")
+                        return redirect("student_create")
+                    if medicine.available_stock < qty:
+                        messages.error(request, f"Out of stock. Only {medicine.available_stock} unexpired units remain.")
+                        return redirect("student_create")
+                    if not medicine_age_allowed(medicine, student_age):
+                        messages.error(request, f"{medicine.name} is outside its configured age range and cannot be dispensed to this student.")
+                        return redirect("student_create")
+
                 student = Student.objects.create(
                     student_id=request.POST["student_id"],
                     full_name=full_name,
                     last_name=last_name,
                     first_name=first_name,
                     middle_name=middle_name,
-                    age=request.POST["age"],
+                    age=student_age,
                     gender=request.POST["gender"],
                     address=request.POST["address"],
                     contact_number=request.POST["contact_number"],
@@ -114,28 +143,36 @@ def student_create(request):
                     emergency_contact=emergency_contact_name,
                     emergency_contact_number=emergency_contact_number,
                 )
+
+                StudentMedicalRequest.objects.create(
+                    student=student,
+                    reason=reason,
+                    medicine=medicine,
+                    medicine_name=medicine.name if medicine else "No Medicine Needed",
+                    requested_by=request.user,
+                )
                 
 
                 if medicine_id:
-                    medicine = get_object_or_404(Medicine, pk=medicine_id)
-
-                    if medicine.quantity_in_stock < qty:
-                        messages.error(request, f"Out of Stock! {medicine.quantity_in_stock} na lang ang natitira.")
+                    try:
+                        allocations = allocate_fefo(medicine, qty)
+                    except InsufficientStock as exc:
+                        messages.error(request, f"Out of stock. Only {exc.available} unexpired units remain.")
                         return redirect("student_create")
-
-                    medicine.quantity_in_stock -= qty
-                    medicine.save()
-
-                    MedicineRecord.objects.create(
+                    record = MedicineRecord.objects.create(
                         student=student,
                         medicine=medicine,
                         medicine_name=medicine.name,
                         dosage=dosage,
                         quantity=qty,
-                        expiration_date=medicine.expiration_date,
+                        expiration_date=allocations[0][0].expiration_date if allocations else None,
                         prescription=reason or "Initial Dispensing",
                         dispensed_by=request.user,
                     )
+                    MedicineRecordBatch.objects.bulk_create([
+                        MedicineRecordBatch(medicine_record=record, batch=batch, quantity=used)
+                        for batch, used in allocations
+                    ])
                
                 ActivityLog.objects.create(
                     
@@ -164,8 +201,53 @@ def student_create(request):
             messages.error(request, f"An error occurred while saving: {str(e)}")
             return redirect("student_create")
 
-    medicines = Medicine.objects.filter(is_deleted=False, quantity_in_stock__gt=0).order_by("name")
+    medicines = Medicine.objects.filter(
+        is_deleted=False,
+    ).order_by("name")
+    medicines = [medicine for medicine in medicines if medicine.available_stock > 0]
     return render(request, "clinic/students/student_create.html", {"medicines": medicines})
+
+
+@login_required
+@role_required("admin", "nurse")
+@require_POST
+def medicine_suggestions(request):
+    student = None
+    student_pk = request.POST.get("student_pk")
+    if student_pk:
+        student = get_object_or_404(Student, pk=student_pk, is_deleted=False)
+    patient_age = student.age if student else request.POST.get("patient_age")
+    result = find_medicine_suggestions(
+        symptoms=request.POST.get("symptoms", ""),
+        patient_age=patient_age,
+        allergies=student.allergies if student else "",
+    )
+
+    return JsonResponse({
+        "status": result["status"],
+        "message": result["message"],
+        "primary_suggestion_id": result["medicines"][0].pk if result["medicines"] else None,
+        "available_medicine_ids": result["available_medicine_ids"],
+        "eligible_medicine_ids": result["eligible_medicine_ids"],
+        "suggestions": [
+            {
+                "id": medicine.pk,
+                "name": medicine.name,
+                "category": medicine.category,
+                "stock": medicine.available_stock,
+                "unit": medicine.unit,
+                "patient_age": patient_age,
+                "minimum_age": medicine.minimum_suggested_age,
+                "maximum_age": medicine.maximum_suggested_age,
+                "age_range": (
+                    f"{medicine.minimum_suggested_age if medicine.minimum_suggested_age is not None else 'No minimum'}–"
+                    f"{medicine.maximum_suggested_age if medicine.maximum_suggested_age is not None else 'No maximum'}"
+                ),
+                "dosage_instructions": medicine.approved_dosage_instructions.strip() or "Dosage instructions require clinic review.",
+            }
+            for medicine in result["medicines"]
+        ],
+    })
 
 @login_required
 @role_required("admin", "nurse")
@@ -191,7 +273,6 @@ def student_edit(request, pk):
         student.section = request.POST.get("section", "")
         student.emergency_contact = request.POST.get("emergency_contact", "").strip()
         student.emergency_contact_number = emergency_contact_number
-        
         student.save()
         messages.success(request, "Student information updated.")
 

@@ -1,7 +1,7 @@
 {% extends "clinic/base.html" %}
 {% load static %}
 
-{% block title %}{% if medicine %}Edit Medicine{% else %}Add Medicine{% endif %} - Clinic Management System{% endblock %}
+{% block title %}{% if form_values.is_edit %}Edit Medicine{% else %}Add Medicine{% endif %} - Clinic Management System{% endblock %}
 
 {% block content %}
 <!-- External Dependencies -->
@@ -256,7 +256,7 @@
                 <i class="bi bi-capsule"></i> Inventory Management
             </div>
             <h1 class="hero-title">
-                {% if medicine %}Edit Medicine{% else %}Add New Medicine{% endif %}
+                {% if form_values.is_edit %}Edit Medicine{% else %}Add New Medicine{% endif %}
             </h1>
             <p class="hero-subtitle">Enter details below to manage medicine records, stock threshold, and expiration dates.</p>
         </div>
@@ -279,7 +279,21 @@
                     <label class="cms-label">
                         <i class="bi bi-tag-fill text-primary"></i> Medicine Name <span class="text-danger">*</span>
                     </label>
-                    <input type="text" name="name" class="cms-input" value="{{ medicine.name|default:'' }}" placeholder="e.g. Paracetamol" required>
+                    <input type="text" name="name" class="cms-input" value="{{ form_values.name }}" placeholder="e.g. Paracetamol" required>
+                </div>
+
+                <div class="form-group-full">
+                    <label class="cms-label">Generic Name</label><input type="text" name="generic_name" class="cms-input" value="{{ form_values.generic_name }}">
+                    <label class="cms-label mt-2">Brand Name</label><input type="text" name="brand_name" class="cms-input" value="{{ form_values.brand_name }}">
+                    <label class="cms-label mt-2">Medicine Form</label><input type="text" name="medicine_form" class="cms-input" value="{{ form_values.medicine_form }}" placeholder="Tablet, capsule, syrup, etc.">
+                    <label class="cms-label mt-2">Strength</label><input type="text" name="strength" class="cms-input" value="{{ form_values.strength }}" placeholder="500 mg">
+                </div>
+
+                <div class="form-group-full">
+                    <label class="cms-label">Symptoms / Indications Keywords</label><textarea name="indications" class="cms-input" rows="2">{{ form_values.indications }}</textarea>
+                    <label class="cms-label mt-2">Contraindications</label><textarea name="contraindications" class="cms-input" rows="2">{{ form_values.contraindications }}</textarea>
+                    <label class="cms-label mt-2">Allergy Warnings</label><textarea name="allergy_warnings" class="cms-input" rows="2">{{ form_values.allergy_warnings }}</textarea>
+                    <label class="cms-label mt-2">Special Instructions</label><textarea name="special_instructions" class="cms-input" rows="2">{{ form_values.special_instructions }}</textarea>
                 </div>
 
                 <!-- Category -->
@@ -287,26 +301,37 @@
                     <label class="cms-label">
                         <i class="bi bi-grid-fill text-info"></i> Category
                     </label>
-                    <input type="text" name="category" class="cms-input" value="{{ medicine.category|default:'' }}" placeholder="e.g. Pain Reliever">
+                    <input type="text" name="category" class="cms-input" value="{{ form_values.category }}" placeholder="e.g. Pain Reliever">
+                    <small class="text-muted">Suggestions match this saved category against Symptoms / Reason. Use the clinic's existing category wording.</small>
                 </div>
 
-                <!-- Clinic-approved condition keywords -->
+                <div>
+                    <label class="cms-label">Minimum Suggested Age</label>
+                    <input type="number" name="minimum_suggested_age" class="cms-input" value="{{ form_values.minimum_suggested_age|default_if_none:'' }}" min="0" max="32767" step="1" placeholder="No minimum">
+                </div>
+
+                <div>
+                    <label class="cms-label">Maximum Suggested Age</label>
+                    <input type="number" name="maximum_suggested_age" class="cms-input" value="{{ form_values.maximum_suggested_age|default_if_none:'' }}" min="0" max="32767" step="1" placeholder="No maximum">
+                </div>
+
                 <div class="form-group-full">
-                    <label class="cms-label">
-                        <i class="bi bi-heart-pulse-fill text-danger"></i> Suggested for Conditions / Symptoms
-                    </label>
-                    <input type="text" name="indications" class="cms-input"
-                           value="{{ medicine.indications|default:'' }}"
-                           placeholder="e.g. headache, fever (comma-separated keywords)">
-                    <small class="text-muted">Clinic-configured suggestions only. Assistant must assess and choose the medicine.</small>
+                    <label class="cms-label">Approved Dosage Instructions <span class="text-muted">(Optional)</span></label>
+                    <textarea name="approved_dosage_instructions" class="cms-input" rows="3" placeholder="Enter clinic-approved instructions, if configured">{{ form_values.approved_dosage_instructions|default:'' }}</textarea>
+                    <small class="text-muted">Suggestions never calculate dosage. Staff must review instructions before recording a dispense.</small>
                 </div>
 
                 <!-- Quantity in Stock -->
                 <div>
-                    <label class="cms-label">
-                        <i class="bi bi-boxes text-warning"></i> Quantity in Stock <span class="text-danger">*</span>
-                    </label>
-                    <input type="number" name="quantity_in_stock" class="cms-input" value="{{ medicine.quantity_in_stock|default:'0' }}" required min="0">
+                    <label class="cms-label"><i class="bi bi-boxes text-warning"></i> {% if form_values.is_edit %}New Batch Quantity{% else %}Initial Batch Quantity{% endif %}</label>
+                    {% if form_values.is_edit %}<small class="text-muted d-block">Current total: {{ form_values.quantity_in_stock }} {{ form_values.unit }}. Enter zero to skip receiving a batch.</small>{% endif %}
+                    <input type="number" name="quantity_in_stock" class="cms-input" value="{% if form_values.is_edit %}0{% else %}{{ form_values.quantity_in_stock }}{% endif %}" required min="0">
+                </div>
+
+                <div class="form-group-full">
+                    <label class="cms-label">Batch Number (optional)</label><input type="text" name="batch_number" class="cms-input" value="{{ form_values.batch_number }}">
+                    <label class="cms-label mt-2">Supplier (optional)</label><input type="text" name="supplier" class="cms-input" value="{{ form_values.supplier }}">
+                    <label class="cms-label mt-2">Date Received</label><input type="date" name="date_received" class="cms-input" value="{{ form_values.date_received }}">
                 </div>
 
                 <!-- Unit -->
@@ -314,7 +339,7 @@
                     <label class="cms-label">
                         <i class="bi bi-rulers text-secondary"></i> Unit
                     </label>
-                    <input type="text" name="unit" class="cms-input" value="{{ medicine.unit|default:'pcs' }}" placeholder="e.g. pcs, tablets, mg">
+                    <input type="text" name="unit" class="cms-input" value="{{ form_values.unit }}" placeholder="e.g. pcs, tablets, mg">
                 </div>
 
                 <!-- Expiration Date -->
@@ -322,7 +347,7 @@
                     <label class="cms-label">
                         <i class="bi bi-calendar-event text-danger"></i> Expiration Date
                     </label>
-                    <input type="date" name="expiration_date" class="cms-input" value="{{ medicine.expiration_date|date:'Y-m-d'|default:'' }}">
+                    <input type="date" name="expiration_date" class="cms-input" value="{{ form_values.expiration_date }}">
                 </div>
 
                 <!-- Low Stock Threshold -->
@@ -330,7 +355,7 @@
                     <label class="cms-label">
                         <i class="bi bi-exclamation-triangle-fill text-warning"></i> Low Stock Threshold
                     </label>
-                    <input type="number" name="low_stock_threshold" class="cms-input" value="{{ medicine.low_stock_threshold|default:'10' }}" min="0" placeholder="Minimum level before alerting">
+                    <input type="number" name="low_stock_threshold" class="cms-input" value="{{ form_values.low_stock_threshold }}" min="0" placeholder="Minimum level before alerting">
                 </div>
 
                 <!-- Image Upload & Preview -->
@@ -340,8 +365,8 @@
                     </label>
                     <input type="file" name="image" id="imageInput" class="cms-input" accept="image/*">
 
-                    <div id="previewContainer" class="image-preview-wrapper {% if not medicine.image %}d-none{% endif %}">
-                        <img id="imagePreview" src="{% if medicine.image %}{{ medicine.image.url }}{% endif %}" alt="Preview" class="current-image-preview">
+                    <div id="previewContainer" class="image-preview-wrapper {% if not form_values.image %}d-none{% endif %}">
+                        <img id="imagePreview" src="{% if form_values.image %}{{ form_values.image.url }}{% endif %}" alt="Preview" class="current-image-preview">
                         <div>
                             <span class="d-block fw-semibold fs-7" id="previewLabel">Current Photo</span>
                             <small class="text-muted fs-8">Upload a new photo to replace this image.</small>
