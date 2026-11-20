@@ -412,20 +412,107 @@ class StudentAgeBasedDispensingTests(TestCase):
             emergency_contact="Contact", emergency_contact_number="09987654321",
         )
 
+    def test_pdf_downloads_are_valid_attachments_for_reports_roster_and_student(self):
+        for url in (
+            reverse("reports_pdf"),
+            reverse("student_print_all_pdf"),
+            reverse("student_pdf", args=[self.student.pk]),
+        ):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "application/pdf")
+            self.assertIn("attachment; filename=", response["Content-Disposition"])
+            self.assertTrue(response.content.startswith(b"%PDF-1.4"))
+            self.assertIn(b"%%EOF", response.content[-32:])
+        roster = self.client.get(reverse("student_print_all_pdf"))
+        profile = self.client.get(reverse("student_pdf", args=[self.student.pk]))
+        self.assertIn(b"/MediaBox [0 0 842 595]", roster.content)
+        self.assertIn(b"/MediaBox [0 0 595 842]", profile.content)
+        self.assertIn(b"/Subtype /Image", profile.content)
+        self.assertIn(b"/ca 0.120 /CA 0.120", profile.content)
+        self.assertIn(b"/XObject << /Logo", profile.content)
+        self.assertIn(b"INTERNATIONAL CLINIC OF EXCELLENCE", profile.content)
+        self.assertIn(b"Urdaneta City, Pangasinan", profile.content)
+        profile_content = profile.content.split(b"stream\n", 2)[-1]
+        self.assertLess(profile_content.index(b"/Logo Do Q"), profile_content.index(b"INTERNATIONAL CLINIC OF EXCELLENCE"))
+        self.assertIn(b"/Subtype /Image", roster.content)
+        self.assertIn(b"/Logo Do Q", roster.content)
+        report = self.client.get(reverse("reports_pdf"))
+        self.assertIn(b"/Subtype /Image", report.content)
+        self.assertIn(b"/Logo Do Q", report.content)
+        self.assertIn(b"1.000 1.000 1.000 rg 0.00 0.00 842.00 595.00 re f", report.content)
+
+        for url in (
+            reverse("reports_pdf") + "?inline=1",
+            reverse("student_print_all_pdf") + "?inline=1",
+            reverse("student_pdf", args=[self.student.pk]) + "?inline=1",
+        ):
+            inline_response = self.client.get(url)
+            self.assertEqual(inline_response.status_code, 200)
+            self.assertIn("inline; filename=", inline_response["Content-Disposition"])
+
+    def test_roster_pdf_repeats_column_headers_across_pages(self):
+        for index in range(70):
+            Student.objects.create(
+                student_id=f"PDF-{index:03}", full_name=f"Student Record {index}", age=18,
+                gender="F", address="Clinic address", contact_number="09123456789",
+                course="Course", year_level="Year 1", emergency_contact="Contact Name",
+                emergency_contact_number="09987654321",
+            )
+        response = self.client.get(reverse("student_print_all_pdf"))
+        self.assertEqual(response.status_code, 200)
+        self.assertRegex(response.content, rb"/Count [2-9][0-9]*")
+        self.assertGreaterEqual(response.content.count(b"(Student ID) Tj"), 2)
+
+    def test_report_pdf_contains_the_full_dashboard_sections(self):
+        response = self.client.get(reverse("reports_pdf"))
+        content = response.content
+        self.assertIn(b"/MediaBox [0 0 842 595]", content)
+        for section in (
+            b"Reports & Analytics", b"TOTAL STUDENTS", b"MEDICINES IN INVENTORY",
+            b"MEDICAL REQUESTS", b"TOTAL UNITS DISPENSED", b"Students by Course",
+            b"Students by Year Level", b"Medical Requests by Status",
+            b"Top Dispensed Medicines", b"Low Stock Medicines", b"Expiring Soon",
+        ):
+            self.assertIn(section, content)
+
+    def test_student_pdf_uses_a_spaced_information_card(self):
+        response = self.client.get(reverse("student_pdf", args=[self.student.pk]))
+        self.assertIn(b"STUDENT INFORMATION", response.content)
+        self.assertIn(b"Dispensing and Medicine Records", response.content)
+        self.assertIn(b"/MediaBox [0 0 595 842]", response.content)
+
     def test_student_print_views_define_theme_independent_a4_print_styles(self):
         roster = self.client.get(reverse("student_print_all"))
-        profile = self.client.get(reverse("student_views", args=[self.student.pk]) + "?print=1")
-        self.assertEqual(roster.status_code, 200)
+        profile = self.client.get(reverse("student_views", args=[self.student.pk]))
+        self.assertEqual(roster.status_code, 302)
+        self.assertIn("inline=1", roster["Location"])
+        roster_pdf = self.client.get(roster["Location"])
+        self.assertEqual(roster_pdf.status_code, 200)
+        self.assertEqual(roster_pdf["Content-Type"], "application/pdf")
+        self.assertIn("inline; filename=", roster_pdf["Content-Disposition"])
         self.assertEqual(profile.status_code, 200)
-        roster_html = roster.content.decode()
         profile_html = profile.content.decode()
-        self.assertIn("size: A4 landscape", roster_html)
         self.assertIn("size: A4 portrait", profile_html)
-        for html in (roster_html, profile_html):
+        self.assertIn(".print-watermark { display: none; }", profile_html)
+        for html in (profile_html,):
             self.assertIn("background-color: #fff", html)
             self.assertIn("color: #111", html)
             self.assertIn("print-color-adjust: exact", html)
             self.assertIn("display: table-header-group", html)
+            self.assertIn("background-color: #dbeafe", html)
+            self.assertIn("color: #123b68", html)
+
+        print_response = self.client.get(reverse("student_views", args=[self.student.pk]) + "?print=1")
+        self.assertEqual(print_response.status_code, 302)
+        self.assertIn("inline=1", print_response["Location"])
+
+        reports = self.client.get(reverse("reports"))
+        self.assertEqual(reports.status_code, 200)
+        reports_html = reports.content.decode()
+        self.assertIn("@page { size: A4 landscape", reports_html)
+        self.assertIn('id="reports-print-area"', reports_html)
+        self.assertIn("print-color-adjust: exact", reports_html)
 
     def test_add_record_form_renders_age_suggestion_area_and_dosage(self):
         response = self.client.get(reverse("medicine_record_create", args=[self.student.pk]))

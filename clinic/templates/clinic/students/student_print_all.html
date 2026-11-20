@@ -1,4 +1,5 @@
 {% extends "clinic/base.html" %}
+{% load static %}
 {% block title %}All Student Records - Print{% endblock %}
 {% block content %}
 <style>
@@ -7,7 +8,9 @@
     .print-roster p { margin: 0 0 14px; color: #444; }
     .print-roster table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     .print-roster th, .print-roster td { border: 1px solid #555; padding: 5px 6px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
-    .print-roster th { background: #fff; }
+    .print-roster th { background: #dbeafe; color: #123b68; }
+    .print-roster tbody tr:nth-child(even) td { background: #f3f8fd; }
+    .print-roster h1 { color: #123b68; border-bottom: 2px solid #0284c7; padding-bottom: 6px; }
     .print-roster th:nth-child(1) { width: 12%; }
     .print-roster th:nth-child(2) { width: 15%; }
     .print-roster th:nth-child(3) { width: 5%; }
@@ -17,17 +20,26 @@
     .print-roster th:nth-child(7) { width: 17%; }
     .print-roster th:nth-child(8) { width: 13%; }
     .print-controls { margin-bottom: 12px; }
+    .print-watermark { display: none; }
     @page { size: A4 landscape; margin: 10mm; }
     @media print {
         @page { size: A4 landscape; margin: 9mm; }
         html, body { display: block !important; width: auto !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; color: #111 !important; }
-        *, *::before, *::after { color: #111 !important; background-color: #fff !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        #student-roster-print, #student-roster-print * { color: #111 !important; background-color: #fff !important; }
+        *, *::before, *::after { color: #111 !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body, #student-roster-print { background: #fff !important; }
+        .print-roster h1 { color: #123b68 !important; border-bottom-color: #0284c7 !important; }
+        .print-roster p { color: #475569 !important; }
+        .print-roster thead th { color: #123b68 !important; background-color: #dbeafe !important; }
+        .print-roster tbody tr:nth-child(even) td { background-color: #f3f8fd !important; }
+        .print-roster tbody tr:nth-child(odd) td { background-color: #fff !important; }
         body * { visibility: hidden !important; }
         #student-roster-print, #student-roster-print * { visibility: visible !important; }
         .main-container, .content-main, .content-inner { display: block !important; width: 100% !important; max-width: none !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; background-image: none !important; }
         .content-overlay { display: none !important; }
         #student-roster-print { position: static !important; inset: auto !important; display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: #fff !important; }
+        #student-roster-print { position: relative !important; isolation: isolate !important; }
+        #student-roster-print > :not(.print-watermark) { position: relative !important; z-index: 1 !important; }
+        #student-roster-print .print-watermark { display: block !important; position: fixed !important; z-index: 0 !important; width: min(38vw, 350px) !important; height: auto !important; max-height: 75vh !important; object-fit: contain !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; opacity: 0.12 !important; }
         .print-controls, #appSidebar, #sidebarOverlay, nav, header, footer, .sidebar, .navbar { display: none !important; }
         .print-roster { font: 9pt Arial, sans-serif !important; }
         .print-roster h1 { font-size: 16pt !important; }
@@ -39,8 +51,9 @@
     }
 </style>
 <div class="print-roster" id="student-roster-print">
+    <img class="print-watermark" src="{% static 'clinic/icons/ice1.png' %}" alt="">
     <div class="print-controls">
-        <button type="button" class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+        <a class="btn btn-primary" href="{% url 'student_print_all_pdf' %}?inline=1" target="_blank" rel="noopener"><i class="bi bi-printer"></i> Print</a>
         <a class="btn btn-outline-secondary" href="{% url 'student_records' %}">Back to Students</a>
     </div>
     <h1>All Active Student Records</h1>

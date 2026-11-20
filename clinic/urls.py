@@ -8,6 +8,7 @@ urlpatterns = [
     path('settings/', views.settings_page, name='settings'),
     path('settings/change-password/', views.CustomPasswordChangeView.as_view(), name='change_password'),
     path('reports/', views.reports, name='reports'),
+    path('reports/download-pdf/', views.reports_pdf, name='reports_pdf'),
     path('logout/', views.logout_view, name='logout'),
 
     # Auth / Password Reset
@@ -25,7 +26,9 @@ urlpatterns = [
     path('students/medicine-suggestions/', views.medicine_suggestions, name='medicine_suggestions'),
     path('students/add/', views.student_create, name='student_create'),
     path('students/print-all/', views.student_print_all, name='student_print_all'),
+    path('students/print-all/pdf/', views.student_print_all_pdf, name='student_print_all_pdf'),
     path('students/<int:pk>/', views.student_views, name='student_views'),
+    path('students/<int:pk>/download-pdf/', views.student_pdf, name='student_pdf'),
     path('students/<int:pk>/edit/', views.student_edit, name='student_edit'),
 
     # Medicine Records

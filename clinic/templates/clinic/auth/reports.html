@@ -275,6 +275,29 @@
         font-size: 0.875rem;
     }
 
+    @media print {
+        @page { size: A4 landscape; margin: 8mm; }
+        html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; color: #111 !important; }
+        *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-shadow: none !important; text-shadow: none !important; }
+        body * { visibility: hidden !important; }
+        #reports-print-area, #reports-print-area * { visibility: visible !important; }
+        #reports-print-area { position: absolute !important; inset: 0 auto auto 0 !important; width: 100% !important; max-width: none !important; padding: 0 !important; margin: 0 !important; background: #fff !important; color: #111 !important; }
+        #reports-print-area { isolation: isolate !important; }
+        #reports-print-area > :not(.reports-print-watermark) { position: relative !important; z-index: 1 !important; }
+        #reports-print-area .reports-print-watermark { display: block !important; position: fixed !important; z-index: 0 !important; width: min(38vw, 350px) !important; height: auto !important; max-height: 75vh !important; object-fit: contain !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; opacity: 0.12 !important; }
+        #reports-print-area .dashboard-hero-card, #reports-print-area .report-stat-card, #reports-print-area .chart-panel { background: #fff !important; color: #111 !important; border: 1px solid #94a3b8 !important; border-radius: 5px !important; }
+        #reports-print-area .dashboard-hero-card { border-top: 4px solid #0284c7 !important; padding: 10px 14px !important; margin-bottom: 10px !important; }
+        #reports-print-area .hero-title, #reports-print-area .chart-panel-header h4, #reports-print-area .report-stat-card .num { color: #123b68 !important; }
+        #reports-print-area .hero-subtitle, #reports-print-area .report-stat-card .label, #reports-print-area .empty-alert { color: #475569 !important; }
+        #reports-print-area .hero-badge, #reports-print-area .stat-icon, #reports-print-area .badge-soft { background: #e0f2fe !important; color: #075985 !important; border: 1px solid #7dd3fc !important; }
+        #reports-print-area .btn-cms-action, #appSidebar, #sidebarOverlay, nav, header, footer, .sidebar, .navbar, .ambient-glow, #reports-print-area button, #reports-print-area a.btn-cms-action { display: none !important; }
+        #reports-print-area .report-grid { display: grid !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 10px !important; }
+        #reports-print-area .report-stat-card { padding: 8px 12px !important; break-inside: avoid !important; }
+        #reports-print-area .reports-grid-2 { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 8px !important; }
+        #reports-print-area .chart-panel { padding: 10px !important; break-inside: avoid !important; }
+        #reports-print-area .chart-container-wrapper { height: 145px !important; }
+    }
+
     /* ==========================================================================
         5. RESPONSIVE
         ========================================================================== */
@@ -288,7 +311,8 @@
 
 <div class="ambient-glow glow-1"></div>
 
-<div class="cms-container">
+<div class="cms-container" id="reports-print-area">
+    <img class="reports-print-watermark" src="{% static 'clinic/icons/ice1.png' %}" alt="" style="display:none">
 
     <!-- 1. DASHBOARD-STYLE HERO HEADER -->
     <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -300,9 +324,10 @@
             <p class="hero-subtitle">Comprehensive summary of medical requests, inventory distribution, and student records.</p>
         </div>
         <div>
-            <button onclick="window.print()" class="btn-cms-action">
+            <a href="{% url 'reports_pdf' %}" class="btn-cms-action me-2"><i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF</a>
+            <a href="{% url 'reports_pdf' %}?inline=1" target="_blank" rel="noopener" class="btn-cms-action">
                 <i class="bi bi-printer-fill me-1"></i> Print Report
-            </button>
+            </a>
         </div>
     </div>
 
@@ -535,6 +560,25 @@
             },
             options: chartOptions
         });
+
+        const reportCharts = Array.from(document.querySelectorAll('#reports-print-area canvas'))
+            .map((canvas) => Chart.getChart(canvas))
+            .filter(Boolean);
+        const setChartPrintColors = (forPrint) => {
+            const printText = forPrint ? '#334155' : textColor;
+            const printGrid = forPrint ? '#cbd5e1' : gridColor;
+            reportCharts.forEach((chart) => {
+                Object.values(chart.options.scales || {}).forEach((scale) => {
+                    if (scale.ticks) scale.ticks.color = printText;
+                    if (scale.grid) scale.grid.color = printGrid;
+                });
+                const legendLabels = chart.options.plugins?.legend?.labels;
+                if (legendLabels) legendLabels.color = printText;
+                chart.update('none');
+            });
+        };
+        window.addEventListener('beforeprint', () => setChartPrintColors(true));
+        window.addEventListener('afterprint', () => setChartPrintColors(false));
     });
 </script>
 {% endblock %}

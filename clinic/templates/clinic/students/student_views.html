@@ -497,21 +497,28 @@
         }
     }
 
+    .print-watermark { display: none; }
+
     @media print {
         @page { size: A4 portrait; margin: 12mm; }
         html, body { display: block !important; width: auto !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #fff !important; color: #111 !important; }
-        *, *::before, *::after { color: #111 !important; background-color: #fff !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        #student-print-area, #student-print-area * { color: #111 !important; background-color: #fff !important; }
+        *, *::before, *::after { color: #111 !important; box-shadow: none !important; text-shadow: none !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        html, body, #student-print-area { background: #fff !important; background-color: #fff !important; }
         body * { visibility: hidden !important; }
         #student-print-area, #student-print-area * { visibility: visible !important; }
         .main-container, .content-main, .content-inner { display: block !important; width: 100% !important; max-width: none !important; min-width: 0 !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important; background: #fff !important; background-image: none !important; }
         .content-overlay { display: none !important; }
         #student-print-area { position: static !important; inset: auto !important; display: block !important; width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; color: #111 !important; background: #fff !important; font-size: 9pt !important; }
+        #student-print-area { position: relative !important; isolation: isolate !important; }
+        #student-print-area > :not(.print-watermark) { position: relative !important; z-index: 1 !important; }
+        #student-print-area .print-watermark { display: block !important; position: fixed !important; z-index: 0 !important; width: min(38vw, 350px) !important; height: auto !important; max-height: 75vh !important; object-fit: contain !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; opacity: 0.12 !important; }
         #appSidebar, #sidebarOverlay, #medModalOverlay, nav, header, footer, .sidebar, .navbar, .toast-container-custom,
         #student-print-area .no-print, #student-print-area .hero-actions,
         #student-print-area .table-action-link, #student-print-area th:last-child,
         #student-print-area td:last-child { display: none !important; }
-        #student-print-area .cms-card, #student-print-area .dashboard-hero-card { box-shadow: none !important; background: #fff !important; border: 1px solid #777 !important; border-radius: 0 !important; }
+        #student-print-area .cms-card, #student-print-area .dashboard-hero-card { box-shadow: none !important; background: #fff !important; border: 1px solid #94a3b8 !important; border-radius: 0 !important; }
+        #student-print-area .section-header-title, #student-print-area .hero-title { color: #123b68 !important; }
+        #student-print-area .section-header-title { border-bottom: 2px solid #0284c7 !important; padding-bottom: 4px !important; }
         #student-print-area .student-info-print-card { break-inside: avoid !important; page-break-inside: avoid !important; }
         #student-print-area .student-records-print-card { overflow: visible !important; }
         #student-print-area .cms-table-responsive, #student-print-area .table-responsive { overflow: visible !important; }
@@ -524,12 +531,15 @@
         #student-print-area .cms-table th:nth-child(6) { width: 19% !important; }
         #student-print-area .cms-table th:nth-child(7) { width: 13% !important; }
         #student-print-area .cms-table th, #student-print-area .cms-table td { color: #111 !important; background: #fff !important; border: 1px solid #555 !important; padding: 4px 3px !important; font-size: 7.5pt !important; overflow-wrap: anywhere !important; }
+        #student-print-area .cms-table thead th { color: #123b68 !important; background-color: #dbeafe !important; }
+        #student-print-area .cms-table tbody tr:nth-child(even) td { background-color: #f3f8fd !important; }
         #student-print-area .cms-table thead { display: table-header-group !important; }
         #student-print-area .cms-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }
         #student-print-area .info-item { break-inside: avoid !important; page-break-inside: avoid !important; }
-        #student-print-area .hero-title { color: #111 !important; font-size: 17pt !important; }
-        #student-print-area .hero-subtitle, #student-print-area .info-label, #student-print-area .info-value { color: #111 !important; }
-        #student-print-area .badge, #student-print-area .inline-code-badge { color: #111 !important; border: 1px solid #777 !important; }
+        #student-print-area .hero-title { color: #123b68 !important; font-size: 17pt !important; }
+        #student-print-area .hero-subtitle, #student-print-area .info-value { color: #111 !important; }
+        #student-print-area .info-label { color: #1d4ed8 !important; }
+        #student-print-area .badge, #student-print-area .inline-code-badge { color: #123b68 !important; background-color: #dbeafe !important; border: 1px solid #93c5fd !important; }
     }
 
     .recycle-flight { position: fixed; z-index: 3000; pointer-events: none; transition: transform .48s cubic-bezier(.2,.8,.2,1), opacity .48s ease; }
@@ -538,6 +548,7 @@
 </style>
 
 <div class="cms-container" id="student-print-area">
+    <img class="print-watermark" src="{% static 'clinic/icons/ice1.png' %}" alt="">
 
     <!-- 1. HERO HEADER PROFILE BANNER -->
     <div class="dashboard-hero-card mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -562,9 +573,10 @@
             <a href="{% url 'student_edit' student.pk %}" class="btn-cms-secondary">
                 <i class="bi bi-pencil-square"></i> Edit
             </a>
-            <button type="button" class="btn-cms-secondary no-print" onclick="window.print()">
+            <a href="{% url 'student_pdf' student.pk %}?inline=1" target="_blank" rel="noopener" class="btn-cms-secondary no-print">
                 <i class="bi bi-printer-fill"></i> Print Student Record
-            </button>
+            </a>
+            <a href="{% url 'student_pdf' student.pk %}" class="btn-cms-secondary no-print"><i class="bi bi-file-earmark-pdf-fill"></i> Download PDF</a>
         </div>
     </div>
 
@@ -771,10 +783,6 @@
                 medBtnIcon.className = "spinner-border spinner-border-sm";
                 medBtnText.textContent = "Deleting...";
             });
-        }
-
-        if (new URLSearchParams(window.location.search).get("print") === "1") {
-            window.addEventListener("load", () => setTimeout(() => window.print(), 250), { once: true });
         }
 
         // Global ESC Key para isara ang modal

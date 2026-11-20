@@ -4,14 +4,17 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.staticfiles import finders
 from django.db import transaction
 from django.db.models import Sum, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.contrib.auth.models import User
 from clinic.decorators import role_required
 from clinic.models import ActivityLog, Medicine, MedicineRecord, MedicineRecordBatch, Notification, Student, StudentMedicalRequest, Nurse
 from clinic.medicine_suggestions import find_medicine_suggestions, medicine_age_allowed
 from clinic.inventory import allocate_fefo, InsufficientStock
+from clinic.pdf_exports import PDFDocument, pdf_response, today_label
 
 
 
@@ -51,14 +54,72 @@ def student_records(request):
 @login_required
 @role_required("admin", "nurse")
 def student_print_all(request):
+    return redirect(f"{reverse('student_print_all_pdf')}?inline=1")
+
+
+@login_required
+@role_required("admin", "nurse")
+def student_print_all_pdf(request):
     students = Student.objects.filter(is_deleted=False).order_by("last_name", "first_name", "student_id")
-    return render(request, "clinic/students/student_print_all.html", {"students": students})
+    document = PDFDocument(landscape=True, title="All Active Student Records")
+    logo_path = finders.find("clinic/icons/ice1.png")
+    if not logo_path:
+        raise FileNotFoundError("The official ICE clinic logo was not found in static files: clinic/icons/ice1.png")
+    document.set_watermark(logo_path, opacity=0.12)
+    document.set_header(("INTERNATIONAL CLINIC OF EXCELLENCE", "Urdaneta City, Pangasinan"))
+    document.heading("All Active Student Records")
+    document.paragraph("Generated", today_label())
+    document.paragraph("Active student count", students.count())
+    rows = [[s.student_id, s.full_name, s.age, s.get_gender_display(),
+             f"{s.course} / {s.year_level}" + (f" / {s.section}" if s.section else ""),
+             s.contact_number, s.emergency_contact, s.emergency_contact_number or "Not provided"]
+            for s in students]
+    document.table(["Student ID", "Student Name", "Age", "Gender", "Course / Year / Section",
+                    "Student Contact", "Emergency Contact", "Emergency Number"], rows,
+                   [.12, .15, .05, .07, .21, .10, .17, .13], font=7)
+    return pdf_response(document, "all_student_records.pdf", inline=request.GET.get("inline") == "1")
+
+
+@login_required
+@role_required("admin", "nurse")
+def student_pdf(request, pk):
+    student = get_object_or_404(Student, pk=pk, is_deleted=False)
+    document = PDFDocument(title="Student Profile and Medicine Records")
+    logo_path = finders.find("clinic/icons/ice1.png")
+    if not logo_path:
+        raise FileNotFoundError("The official ICE clinic logo was not found in static files: clinic/icons/ice1.png")
+    document.set_watermark(logo_path, opacity=0.12)
+    document.set_header(("INTERNATIONAL CLINIC OF EXCELLENCE", "Urdaneta City, Pangasinan"))
+    document.heading("Student Profile")
+    document.profile_card(student.full_name, [
+        ("Student ID", student.student_id),
+        ("Age", f"{student.age} years old"),
+        ("Gender", student.get_gender_display()),
+        ("Address", student.address),
+        ("Contact Number", student.contact_number),
+        ("Course", student.course),
+        ("Year Level / Section", f"{student.year_level} / {student.section or 'Not provided'}"),
+        ("Emergency Contact", student.emergency_contact),
+        ("Emergency Number", student.emergency_contact_number),
+    ])
+    document.heading("Dispensing and Medicine Records")
+    records = MedicineRecord.objects.filter(student=student, is_deleted=False).select_related("medicine", "dispensed_by").order_by("-date_released")
+    rows = [[record.date_released.strftime("%b %d, %Y"), record.medicine_name,
+             record.dosage or "Not recorded", f"{record.quantity} {record.medicine.unit if record.medicine else 'pcs'}",
+             record.expiration_date.strftime("%b %d, %Y") if record.expiration_date else "Not recorded",
+             record.prescription or "Not recorded", record.dispensed_by.username if record.dispensed_by else "Not recorded"]
+            for record in records]
+    document.table(["Date", "Medicine", "Dosage", "Qty", "Expiration", "Instructions", "Dispensed By"], rows,
+                   [.13, .17, .19, .08, .13, .19, .11], font=7)
+    return pdf_response(document, f"student_{student.student_id}_record.pdf", inline=request.GET.get("inline") == "1")
 
 
 @login_required
 @role_required("admin", "nurse")
 def student_views(request, pk):
     student = get_object_or_404(Student, pk=pk, is_deleted=False)
+    if request.GET.get("print") == "1":
+        return redirect(f"{reverse('student_pdf', args=[student.pk])}?inline=1")
     medicine_records = MedicineRecord.objects.filter(student=student, is_deleted=False).order_by("-date_released")
 
     return render(
